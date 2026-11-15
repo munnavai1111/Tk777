@@ -59,20 +59,6 @@
 
 </main>
 <script>
-/* TK777 API bridge - account authentication and server balance display. */
-(()=>{
- const API='https://tk777-api.dhmatelecom.workers.dev';
- const tokenKey='tk777-api-user-token';
- const req=async(path,opts={})=>{const token=localStorage.getItem(tokenKey);const r=await fetch(API+path,{method:opts.method||'GET',headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},...(opts.body?{body:JSON.stringify(opts.body)}:{})});const d=await r.json().catch(()=>({}));if(!r.ok||d.success===false)throw new Error(d.message||'API error '+r.status);return d};
- window.TK777API={base:API,request:req,token:()=>localStorage.getItem(tokenKey),logout:async()=>{try{await req('/api/logout',{method:'POST'})}finally{localStorage.removeItem(tokenKey);localStorage.removeItem('tk777-current')}},refreshUser:async()=>{const d=await req('/api/user/me');return d.user}};
- if(location.pathname.endsWith('/admin.html')){
-  const gate=document.createElement('div');gate.id='tk777ApiAdminGate';gate.style='position:fixed;inset:0;background:#08080cf2;z-index:999999;display:flex;align-items:center;justify-content:center;padding:20px;font-family:Arial';
-  gate.innerHTML='<div style="background:#202027;color:white;padding:24px;border-radius:14px;width:min(360px,100%)"><h2>TK777 Admin Login</h2><input id="tk777-au" value="tk777admin" style="box-sizing:border-box;width:100%;padding:12px;margin:6px 0"><input id="tk777-ap" type="password" placeholder="Admin password" style="box-sizing:border-box;width:100%;padding:12px;margin:6px 0"><button id="tk777-al" style="padding:11px 18px">Login</button><p id="tk777-ae" style="color:#ff9999"></p></div>';
-  document.addEventListener('DOMContentLoaded',()=>{document.body.appendChild(gate);document.getElementById('tk777-al').onclick=async()=>{const b=document.getElementById('tk777-al'),e=document.getElementById('tk777-ae');b.disabled=true;try{const r=await fetch(API+'/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:document.getElementById('tk777-au').value,password:document.getElementById('tk777-ap').value})});const d=await r.json();if(!r.ok||!d.success)throw Error(d.message||'Login failed');sessionStorage.setItem('tk777-admin-token',d.token);gate.remove();}catch(x){e.textContent=x.message;b.disabled=false}};});
- }
-})();
-</script>
-<script>
 (()=>{
 const $=id=>document.getElementById(id),fmt=n=>Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const currentUser=localStorage.getItem('tk777-current')||'';
