@@ -1,33 +1,56 @@
-TK777 — GitHub Pages static demo
+TK777 — Cloud-first Virtual Coin Build
+=====================================
 
-এই সংস্করণে ভিডিওর দৃশ্যমান লেআউট অনুসারে মোবাইল-ফার্স্ট কালো/সোনালি হোম, Login/Register, Win List, game tiles, bottom navigation, My Account, Deposit/Withdraw demo pages এবং Aviator game রাখা হয়েছে।
-নতুন account-এর balance 0.00; Aviator game-এও প্রাথমিক balance 0।
+এই প্যাকেজে আগের TK777 UI/design রেখে Cloudflare D1 API-তে যুক্ত করা ফাইল আছে।
 
-GitHub Pages:
-1. ZIP extract করুন।
-2. GitHub-এ Public repository তৈরি করুন।
-3. Extract করা ফাইলগুলো repository root-এ upload/commit করুন।
-4. Settings > Pages > Deploy from a branch > main > /(root) > Save।
-5. GitHub প্রদত্ত URL-এ সাইট দেখুন।
+ফাইল:
+- index.html                 মূল ইউজার প্যানেল (আগের কালার/লেআউট রাখা হয়েছে)
+- aviator.html               Aviator UI; রাউন্ড, বেট, ক্যাশআউট ও ব্যালেন্স সার্ভার-নিয়ন্ত্রিত
+- admin.html                 আলাদা অ্যাডমিন প্যানেল; Next Round Crash Multiplier ও Cloud user/request controls
+- schema.sql                 বর্তমান D1-এ additive migration
+- worker_routes_patch.js     আপনার বর্তমান Worker-এ যোগ করার নতুন API route/helper
 
-সীমাবদ্ধতা ও নিরাপত্তা:
-- ভিডিওতে দেখা নির্দিষ্ট তৃতীয় পক্ষের লোগো/ব্র্যান্ড/অ্যাসেট হুবহু কপি করা হয়নি; সাধারণ বিন্যাস ও রঙের ধাঁচ অনুসরণ করা হয়েছে।
-- GitHub Pages static hosting; এই login localStorage demo, নিরাপদ multi-user authentication নয়।
-- বাস্তব অর্থের deposit/withdraw বা bKash/Nagad payment integration যোগ করা হয়নি। এই Aviator/betting-style game-এর সঙ্গে বাস্তব অর্থের পেমেন্ট যুক্ত করতে পারি না। Deposit/Withdraw পেজগুলো শুধু demo notice দেখায়; কোনো payment number দেখায় না বা টাকা নেয় না।
-- প্রকাশ্যে ব্যবহারের আগে backend, secure password hashing, database, server-side session এবং admin authorization প্রয়োজন।
-- admin.html হলো আগের demo control panel; এটি production admin security নয়।
+গুরুত্বপূর্ণ: Worker সম্পূর্ণ নতুন করে Replace করবেন না।
+------------------------------------------------------
+আপনার বর্তমানে চালু Worker-এর login/password hashing/session, register, deposit/withdraw এবং admin API কোড অক্ষত রাখুন।
 
+১) Cloudflare D1 (tk777-db) খুলে schema.sql একবার Run করুন। এটি পুরোনো users/sessions/transactions টেবিল Drop করে না।
+২) বর্তমানে চালু Worker source-এ worker_routes_patch.js খুলুন।
+   - `tickTK777Game` helper function-টি `export default`-এর আগে যোগ করুন।
+   - `PUBLIC_GAME_ROUTES` অংশটি fetch handler-এর try{} ব্লকে, `if(p.startsWith('/api/admin/'))`-এর আগে যোগ করুন।
+   - `ADMIN_GAME_ROUTES` অংশটি authenticated `/api/admin/` ব্লকে `requireAdmin` সফল হওয়ার পরে যোগ করুন।
+৩) Worker Deploy করুন। ADMIN_PASSWORD secret আগের মতোই সেট থাকতে হবে।
+৪) index.html, aviator.html, admin.html একই Pages/site folder-এ Upload/Deploy করুন।
+৫) প্রথমবারের মতো নতুন user account Register করুন; পুরোনো LocalStorage account/balance সার্ভারে migrate হয় না।
 
-এই আপডেটে:
-- Virtual withdrawal submit করলেই ইউজারের ভার্চুয়াল ব্যালেন্স থেকে কয়েন reserve/deduct হয়।
-- Admin Panel-এ Accept করলে আর দ্বিতীয়বার deduction হয় না।
-- Admin Panel-এ Reject + Refund করলে reserve করা কয়েন একবারই ফেরত যায়।
-- Admin-approved virtual deposit-এর পরেই bonus Claim করা যায়; তার আগে “বোনাস ক্লেইম করতে আগে ডিপোজিট করুন।” দেখায়।
-- Admin Panel থেকে Home Page-এর logo/brand text, banner heading/subtitle, notice এবং প্রধান রঙ/ব্যানার ব্যাকগ্রাউন্ড বদলানো যায়।
+নতুন API endpoints:
+- GET  /api/game/state          Public live state; crash target ইউজারদের কাছে প্রকাশ করে না
+- GET  /api/game/bets           Logged-in user's bet history
+- POST /api/game/bet            Server-side bet + balance debit
+- POST /api/game/bet/cancel     Pending bet cancel + refund
+- POST /api/game/bet/cashout    Server-side cashout + payout
+- GET/POST /api/admin/game      Admin next crash read/set
 
-সীমাবদ্ধতা:
-- এগুলো localStorage-ভিত্তিক ভার্চুয়াল কয়েন demo feature; বাস্তব টাকা, ব্যাংক/bKash/Nagad payout বা জুয়া-সংক্রান্ত অর্থ লেনদেন নয়।
-- localStorage ডেটা শুধু একই browser profile/origin-এ থাকে; আলাদা ইউজার/ডিভাইসের জন্য sync হয় না।
-- Admin Panel-এ production authentication/authorization নেই। বাস্তব public deployment-এর জন্য server-side database, secure admin login, audit log, transaction locking ও server-side balance validation অপরিহার্য।
+Next Round Crash:
+- Admin প্যানেলে Next Round Crash multiplier সার্ভার থেকে দেখানো হবে।
+- রাউন্ড চলাকালে multiplier সেট করলে সেটি পরবর্তী রাউন্ডের জন্য রাখা হবে।
+- Waiting অবস্থায় সেট করলে শুরু হতে যাওয়া রাউন্ডে প্রযোজ্য হবে।
+- একই D1 game_state ব্যবহার করায় সব ইউজারের জন্য একই রাউন্ড ও crash result থাকবে।
+- Public game-state API-তে নির্দিষ্ট crash target পাঠানো হয় না; শুধু চলমান multiplier ও ফলাফলের ইতিহাস যায়।
 
-নতুন আপডেট: Aviator গেম এখন লগইন করা ইউজারের tk777-users balance-ই ব্যবহার করে। Bet দিলে মেইন ব্যালেন্স থেকে কয়েন কাটা হয়; Cash Out/Cancel করলে গেমের নিয়ম অনুযায়ী একই মেইন ব্যালেন্সে ফেরত/জমা হয়। একই browser profile ও একই site origin-এ index.html এবং aviator.html চালাতে হবে। আলাদা ডিভাইস বা আলাদা ব্রাউজারে localStorage sync হয় না।
+ভার্চুয়াল কয়েন ও সীমাবদ্ধতা:
+- এটি ভার্চুয়াল কয়েন ডেমো; বাস্তব টাকা, বাস্তব bKash/Nagad/USDT পেমেন্ট বা payout নেই।
+- Deposit/Withdraw request সার্ভারে pending হিসেবে যায়; অ্যাডমিন approve/reject করে।
+- অ্যাডমিন user balance server থেকে সেট করতে পারে।
+- Legacy site theme/text/custom HTML game/bonus editor-এর কিছু সেটিং আগের মতো local browser storage-এ থাকতে পারে; এই build-এ সেগুলো সব device-এ cloud-sync করা হয়নি।
+- Transaction PIN, profile display-name/password-change ও bonus claims এখনো server-side feature হিসেবে যুক্ত নয়; এগুলোকে secure cloud feature ধরে ব্যবহার করবেন না।
+
+পরীক্ষা:
+১) /api/health এ success:true ও database:connected দেখুন।
+২) নতুন account register/login করে home balance 0.00 দেখুন।
+৩) Admin login করে Cloud Dashboard এবং Next Round Crash দেখুন।
+৪) Admin থেকে test multiplier দিন; Aviator page-এ সব browser-এ একই round/multiplier দেখুন।
+৫) Bet/cashout করে server balance ও Bet History পরীক্ষা করুন।
+৬) Deposit/Withdraw request করে admin থেকে approve/reject পরীক্ষা করুন।
+
+কোনো real-money deposit/payment নির্দেশনা ব্যবহার করবেন না।
