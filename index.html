@@ -1,32 +1,14 @@
-<!doctype html>
-<html lang="bn">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>TK777</title><link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-<header class="top"><a class="brand" href="index.html">TK<span>777</span></a><div id="userNav" class="hidden"><span id="navUser"></span><button class="small ghost" id="logoutBtn">লগআউট</button></div></header>
-<main class="wrap">
-<section id="authView" class="auth-grid">
- <div class="hero"><div class="eyebrow">TK777 ACCOUNT</div><h1>আপনার অ্যাকাউন্টে<br>স্বাগতম</h1><p>নিবন্ধন করুন অথবা আপনার অ্যাকাউন্টে লগইন করুন।</p><div class="hero-mark">777</div></div>
- <div class="panel">
-  <div class="tabs"><button class="tab active" data-tab="login">লগইন</button><button class="tab" data-tab="register">রেজিস্ট্রেশন</button></div>
-  <form id="loginForm"><label>ইউজারনেম</label><input name="username" required minlength="3" autocomplete="username"><label>পাসওয়ার্ড</label><input name="password" type="password" required autocomplete="current-password"><button class="primary full">লগইন করুন</button></form>
-  <form id="registerForm" class="hidden"><label>ইউজারনেম</label><input name="username" required minlength="3" maxlength="20" pattern="[A-Za-z0-9_]{3,20}" autocomplete="username"><small>৩–২০ অক্ষর; ইংরেজি অক্ষর, সংখ্যা ও _ ব্যবহার করুন।</small><label>পাসওয়ার্ড</label><input name="password" type="password" required minlength="6" autocomplete="new-password"><button class="primary full">অ্যাকাউন্ট তৈরি করুন</button></form>
-  <p id="authMsg" class="msg" role="status"></p>
- </div>
-</section>
-<section id="accountView" class="hidden">
- <div class="welcome"><div><div class="eyebrow">USER ACCOUNT</div><h1>হ্যালো, <span id="username"></span></h1><p>আপনার অ্যাকাউন্টের সারসংক্ষেপ</p></div><div class="avatar">TK</div></div>
- <div class="balance-card"><div class="muted">বর্তমান ব্যালেন্স</div><div class="money">৳ <span id="balance">0</span></div><div class="muted">সার্ভার থেকে সর্বশেষ ব্যালেন্স</div></div>
- <div class="two">
-  <div class="panel"><h2>ব্যালেন্স রিকোয়েস্ট</h2><p class="muted">এই API-তে রিকোয়েস্ট Pending হিসেবে জমা হবে। Admin অনুমোদন বা বাতিল করবেন।</p>
-   <form id="requestForm"><label>রিকোয়েস্টের ধরন</label><select name="type"><option value="deposit">ডিপোজিট রিকোয়েস্ট</option><option value="withdraw">উইথড্র রিকোয়েস্ট</option></select><label>পরিমাণ</label><input name="amount" type="number" min="1" max="1000000" step="1" required><button class="primary full">রিকোয়েস্ট পাঠান</button></form><p id="requestMsg" class="msg"></p>
-  </div>
-  <div class="panel"><div class="section-head"><h2>লেনদেনের ইতিহাস</h2><button class="small ghost" id="refreshBtn">রিফ্রেশ</button></div><div id="transactions" class="empty">লোড হচ্ছে…</div></div>
- </div>
-</section>
-<footer>TK777 · Account Portal</footer>
+<!doctype html><html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TK777</title><link rel="stylesheet" href="assets/style.css"></head><body><div class="app">
+<header class="topbar"><a class="brand" href="index.html">TK<span>777</span></a><div class="top-actions"><div class="balance-pill">৳ <b id="topBalance">—</b></div><button class="icon-btn" id="accountBtn">☻</button></div></header>
+<main class="content" id="lobby">
+<section class="promo"><div><span class="tag">WELCOME TO TK777</span><h1>আপনার গেমিং<br>জগতে স্বাগতম</h1><p>এক জায়গায় আপনার পছন্দের গেম</p></div></section>
+<div class="section-title"><h2>গেম ক্যাটাগরি</h2><a href="#">সব দেখুন</a></div>
+<div class="categories"><a class="cat active" href="#"><span class="ico">♧</span>সব গেম</a><a class="cat" href="#"><span class="ico">✈</span>Crash</a><a class="cat" href="#"><span class="ico">⚽</span>Sports</a><a class="cat" href="#"><span class="ico">🎰</span>Slots</a><a class="cat" href="#"><span class="ico">♠</span>Cards</a></div>
+<div class="section-title"><h2>জনপ্রিয় গেম</h2><a href="aviator.html">আরও দেখুন</a></div>
+<div class="game-grid"><a class="game-card" href="aviator.html"><div class="game-art aviator"></div><div class="game-meta">Aviator<small>Crash Game</small></div></a><div class="game-card"><div class="game-art">♛</div><div class="game-meta">Cards<small>শিগগিরই</small></div></div><div class="game-card"><div class="game-art">⚽</div><div class="game-meta">Sports<small>শিগগিরই</small></div></div></div>
+<section class="panel" id="accountPanel"><h2>আপনার অ্যাকাউন্ট</h2><div id="loggedOut"><p class="muted">ব্যালেন্স ও লেনদেন দেখতে লগইন করুন।</p><button class="btn" id="openAuth">লগইন / রেজিস্ট্রেশন</button></div><div id="loggedIn" class="hidden"><div class="muted">স্বাগতম, <b id="username"></b></div><div style="font-size:30px;font-weight:900;margin:8px 0">৳ <span id="balance">0</span></div><button class="small" id="refresh">ব্যালেন্স রিফ্রেশ</button><button class="small" id="logout">লগআউট</button><h2 style="margin-top:20px">ব্যালেন্স রিকোয়েস্ট</h2><form id="requestForm"><div class="row"><select name="type"><option value="deposit">ডিপোজিট</option><option value="withdraw">উইথড্র</option></select><input name="amount" type="number" min="1" max="1000000" placeholder="পরিমাণ" required></div><button class="btn block">রিকোয়েস্ট পাঠান</button></form><p id="requestMsg" class="msg"></p><h2>লেনদেনের ইতিহাস</h2><div id="transactions"></div></div></section>
 </main>
-<script src="assets/config.js"></script><script src="assets/app.js"></script>
-</body></html>
+<nav class="bottom-nav"><a class="active" href="index.html"><b>⌂</b>হোম</a><a href="aviator.html"><b>✈</b>গেম</a><a href="#accountPanel"><b>◉</b>ওয়ালেট</a><a href="admin.html"><b>☷</b>অ্যাকাউন্ট</a></nav>
+</div>
+<div id="authModal" class="hidden" style="position:fixed;inset:0;background:#000c;z-index:30;overflow:auto"><div class="auth-wrap"><div class="auth-brand">TK<span>777</span></div><div class="panel"><div class="tabs"><button class="active" data-tab="login">লগইন</button><button data-tab="register">রেজিস্ট্রেশন</button></div><form id="loginForm"><label>ইউজারনেম</label><input name="username" required autocomplete="username"><label>পাসওয়ার্ড</label><input name="password" type="password" required autocomplete="current-password"><button class="btn block">লগইন করুন</button></form><form id="registerForm" class="hidden"><label>ইউজারনেম</label><input name="username" required minlength="3" maxlength="20" pattern="[A-Za-z0-9_]{3,20}"><label>পাসওয়ার্ড</label><input name="password" type="password" required minlength="6"><button class="btn block">অ্যাকাউন্ট তৈরি করুন</button></form><p id="authMsg" class="msg"></p><button class="small" id="closeAuth">বন্ধ করুন</button></div></div></div>
+<script src="assets/config.js"></script><script src="assets/app.js"></script></body></html>
