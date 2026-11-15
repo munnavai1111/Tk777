@@ -1,22 +1,37 @@
-TK222 — নতুন ব্র্যান্ডেড ফ্রন্টএন্ড প্যাকেজ
+TK777 FRONTEND — API COMPATIBLE PACKAGE
 
-ফাইলসমূহ:
-- index.html: রেজিস্ট্রেশন/লগইন, হোম, ক্যাটাগরি, অ্যাকাউন্ট, ভার্চুয়াল কয়েনের পেজ
-- aviator.html: Aviator-স্টাইল practice crash game UI
-- admin.html: admin console UI, user/credit controls, HTML game upload preview
-- assets/tk222-aircraft-reference.jpg: আপনার দেওয়া ছবির বিমান অংশ থেকে তৈরি রেফারেন্স গ্রাফিক
+Included:
+- index.html: user registration, login, profile balance, transaction list, deposit/withdraw request submission.
+- admin.html: admin login, dashboard stats, user list, set user balance, approve/reject pending requests.
+- assets/: CSS, API config, frontend JavaScript.
 
-চালানো:
-python -m http.server 8080
-তারপর http://localhost:8080/index.html খুলুন।
+API URL:
+https://tk777-api.dhmatelecom.workers.dev
+Configured in assets/config.js. No Worker source changes are required if this URL and the supplied Worker deployment are active.
 
-গুরুত্বপূর্ণ সীমাবদ্ধতা:
-১) এটি UI/ফ্রন্টএন্ড প্যাকেজ; production backend এখনো সংযুক্ত বা যাচাই করা হয়নি।
-২) API URL-এ YOUR-TK222-WORKER placeholder আছে। Cloudflare Worker তৈরি ও নিরাপদ API implement না করা পর্যন্ত login/admin cloud calls কাজ করবে না।
-৩) পুরোনো TK777 API-তে কোনো request যাবে না।
-৪) এই legacy UI-তে কিছু state browser localStorage/BroadcastChannel-এ থাকে; এগুলো production account/balance সংরক্ষণের জন্য নিরাপদ নয়।
-৫) Virtual credits-এর কোনো নগদ মূল্য, deposit বা withdraw নেই। Deposit/withdraw screen-গুলো virtual request UI মাত্র; কোনো real payment করবেন না।
-৬) Admin crash settings কেবল স্পষ্টভাবে চিহ্নিত practice environment-এ ব্যবহার করুন; ব্যবহারকারীদের কাছে ফলাফল/নিয়ম দৃশ্যমান রাখতে হবে।
-৭) HTML upload preview sandbox করা আছে; production-এ server-side file validation, size limits, CSP এবং isolated origin দরকার।
+IMPORTANT LIMITATIONS — these are intentionally NOT included because the supplied Worker code does not implement them:
+- Aviator/crash gameplay, bets, cashout, game rounds, game history.
+- Bet increment/decrement controls.
+- Separate game wallet or automatic main/game balance synchronization for wagers.
+- User suspend/activate, game catalog, HTML game upload.
+- Admin game result controls.
 
-পরবর্তী ধাপ: Cloudflare Worker + D1 backend তৈরি, authentication/session security, server-authoritative virtual-credit ledger, game round synchronization, admin RBAC ও audit log implement করে আলাদা staging-এ পরীক্ষা করতে হবে।
+The supplied Worker exposes account balance and transaction request endpoints only. The frontend does not pretend unsupported features work.
+
+Deployment:
+1. Upload the ZIP contents to the existing GitHub repository used by your static Pages site.
+2. Ensure index.html is at the published root.
+3. Set the Pages build output directory to the repository root (or the folder containing index.html).
+4. Open the site and test registration/login.
+5. Admin page: /admin.html. Username is tk777admin; password must match the ADMIN_PASSWORD Worker secret.
+
+Worker prerequisites:
+- D1 binding must be named DB.
+- Tables referenced by the Worker must already exist.
+- ADMIN_PASSWORD secret must be configured.
+- This package does not create or modify Worker/D1 resources.
+
+Security note:
+- This UI uses browser localStorage only to retain the bearer session token; balances and transaction records are read/written through the API.
+- Your Worker currently allows wildcard CORS. Restrict allowed origins in production if possible.
+- The Worker code supplied has no game/bet routes. Do not use this package to represent real-money gambling.
