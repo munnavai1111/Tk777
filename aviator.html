@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Aviator — Virtual Coin Demo</title>
+<title>Aviator</title>
 <style>
 :root{--bg:#101012;--panel:#1b1b1e;--panel2:#202024;--green:#20ad08;--red:#f20b48;--muted:#88888d}
 *{box-sizing:border-box}body{margin:0;background:#09090a;color:#eee;font-family:Arial,Helvetica,sans-serif}
@@ -74,93 +74,59 @@
 </script>
 <script>
 (()=>{
-const $=id=>document.getElementById(id),fmt=n=>Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-const currentUser=localStorage.getItem('tk777-current')||'';
-function readWalletBalance(){if(!currentUser)return 0;try{const db=JSON.parse(localStorage.getItem('tk777-users')||'{}');return Math.max(0,Number(db[currentUser]?.balance||0));}catch(e){return 0;}}
-let balance=readWalletBalance(),round=1,phase='waiting',mult=1,crashAt=2.55,manualNext=null,started=0,waitUntil=Date.now()+4500,history=[],slots=[0,1].map(()=>({amount:1,bet:null,tab:'Bet',autoCash:null}));
-const betHistoryKey='tk777-aviator-bets-'+(currentUser||'guest');
-function readBetHistory(){try{return JSON.parse(localStorage.getItem(betHistoryKey)||'[]')}catch(e){return []}}
-let myBetHistory=readBetHistory();
-function addBetHistory(action,stake,result,detail=''){
- const item={time:new Date().toLocaleString('bn-BD'),round,action,stake:Number(stake||0),result:Number(result||0),detail};
- myBetHistory.unshift(item);myBetHistory=myBetHistory.slice(0,100);
- try{localStorage.setItem(betHistoryKey,JSON.stringify(myBetHistory))}catch(e){}
- renderBetHistory();
-}
-function renderBetHistory(){
- const el=$('myBetHistoryList');if(!el)return;
- if(!myBetHistory.length){el.textContent='এখনো কোনো বেট হিস্টরি নেই।';return}
- el.innerHTML=myBetHistory.map(x=>`<div class="my-bet-row"><div><b>${x.action}</b><div style="color:#888;margin-top:3px">${x.time} · Round ${x.round}</div></div><div style="text-align:right"><b>${fmt(x.stake)} BDT</b><div style="color:${x.result>=0?'#20ad08':'#f20b48'};margin-top:3px">${x.result>=0?'+':''}${fmt(x.result)} BDT</div></div></div>`).join('');
-}
-document.querySelectorAll('[data-lower-tab]').forEach(b=>b.addEventListener('click',()=>{
- document.querySelectorAll('[data-lower-tab]').forEach(x=>x.classList.toggle('active',x===b));
- $('myBetHistory').style.display=b.dataset.lowerTab==='mine'?'block':'none';
-}));
-renderBetHistory();
-const panelRoot=$('betPanels');
-panelRoot.innerHTML=slots.map((s,i)=>`<section class="bet-area" data-slot="${i}"><div class="bet-tabs"><button class="active" data-tab="Bet">Bet</button><button data-tab="Auto">Auto</button></div><div class="bet-content"><div class="left-controls"><div class="amount"><button data-minus>−</button><strong class="amountText">1.00</strong><button data-plus>+</button></div><div class="presets"><button data-amount="100">100</button><button data-amount="200">200</button><button data-amount="500">500</button><button data-amount="10000">10,000</button></div><div class="autoOptions" hidden style="font-size:11px;color:#aaa;margin-top:8px">Auto cash out × <input class="autoCash" type="number" min="1.01" step=".01" placeholder="e.g. 2.00" style="width:65px;background:#111;color:white;border:1px solid #555;border-radius:5px;padding:5px"></div></div><button class="bet-action">Bet<br>1.00 BDT</button></div></section>`).join('');
-function drawPanel(i){const p=panelRoot.querySelector(`[data-slot="${i}"]`),s=slots[i],b=s.bet,btn=p.querySelector('.bet-action');p.querySelector('.amountText').textContent=fmt(s.amount);p.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===s.tab));p.querySelector('.autoOptions').hidden=s.tab!=='Auto';btn.className='bet-action';btn.disabled=false;
-if(!b){btn.innerHTML=`Bet<br>${fmt(s.amount)} BDT`;btn.disabled=phase!=='waiting'}
-else if(b.state==='pending'){btn.textContent='Cancel';btn.classList.add('cancel');btn.disabled=phase!=='waiting'}
-else if(b.state==='active'){btn.innerHTML=`Cash Out<br>${fmt(b.stake*mult)} BDT`;btn.classList.add('cash');btn.disabled=phase!=='flying'}
-else{btn.innerHTML=b.state==='won'?`Cashed Out<br>${fmt(b.payout)} BDT`:'FLEW AWAY!';btn.disabled=true}
-}
-function saveWalletBalance(){if(!currentUser)return;try{const db=JSON.parse(localStorage.getItem('tk777-users')||'{}');if(!db[currentUser])return;db[currentUser].balance=Number(balance.toFixed(2));localStorage.setItem('tk777-users',JSON.stringify(db));}catch(e){console.warn('Wallet balance could not be saved',e);}}
-function render(){ $('balance').textContent=fmt(balance);$('multiplier').textContent=mult.toFixed(2)+'x';$('crashLabel').style.display=phase==='crashed'?'block':'none';slots.forEach((_,i)=>drawPanel(i));}
-function logHistory(x){history.unshift(x.toFixed(2)+'x');history=history.slice(0,12);$('history').innerHTML=history.map(v=>`<span>${v}</span>`).join('')+'<span class="more">•••</span>';adminSend({type:'history',history:history.slice(),lastCrash:x.toFixed(2)+'x',round})}
-function nextRound(){phase='waiting';mult=1;crashAt=manualNext??+(1.1+Math.random()*5.5).toFixed(2);manualNext=null;slots.forEach(s=>{if(s.bet&&s.bet.state!=='pending')s.bet=null});waitUntil=Date.now()+4500;render();adminSend({type:'round-state',phase,round,nextCrash:+crashAt.toFixed(2),history:history.slice()})}
-function startRound(){phase='flying';started=Date.now();slots.forEach(s=>{if(s.bet?.state==='pending')s.bet.state='active'});render();adminSend({type:'round-state',phase,round,multiplier:1,history:history.slice()})}
-function crash(){if(phase!=='flying')return;phase='crashed';mult=crashAt;slots.forEach((s,i)=>{if(s.bet?.state==='active'){s.bet.state='lost';addBetHistory('Lost',s.bet.stake,-s.bet.stake,'রাউন্ড ক্র্যাশ করেছে')}});logHistory(crashAt);render();adminSend({type:'round-state',phase,round,multiplier:+mult.toFixed(2),history:history.slice(),lastCrash:mult.toFixed(2)+'x'});round++;setTimeout(nextRound,2800)}
-function cashout(i){let b=slots[i].bet;if(!b||b.state!=='active'||phase!=='flying')return;b.payout=b.stake*mult;balance+=b.payout;b.state='won';saveWalletBalance();addBetHistory('Cash Out',b.stake,b.payout-b.stake,`মোট ফেরত ${fmt(b.payout)}`);render()}
-function clickAction(i){let s=slots[i],b=s.bet;if(b?.state==='pending'&&phase==='waiting'){balance+=b.stake;addBetHistory('Cancel',b.stake,0,'বেট বাতিল');s.bet=null;saveWalletBalance();render();return}if(b?.state==='active'){cashout(i);return}if(!b&&phase==='waiting'){if(!currentUser){alert('গেম খেলতে আগে অ্যাকাউন্টে লগইন করুন।');return}if(s.amount>balance)return;balance-=s.amount;s.bet={stake:s.amount,state:'pending'};addBetHistory('Bet',s.amount,0,'বেট প্লেস হয়েছে');saveWalletBalance();render()}}
-panelRoot.querySelectorAll('[data-slot]').forEach(p=>{let i=+p.dataset.slot;p.querySelector('.bet-action').onclick=()=>clickAction(i);p.querySelector('[data-minus]').onclick=()=>{slots[i].amount=Math.max(.1,+(slots[i].amount-.1).toFixed(2));render()};p.querySelector('[data-plus]').onclick=()=>{slots[i].amount=+(slots[i].amount+.1).toFixed(2);render()};p.querySelectorAll('[data-amount]').forEach(b=>b.onclick=()=>{slots[i].amount=+b.dataset.amount;render()});p.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{slots[i].tab=b.dataset.tab;render()});p.querySelector('.autoCash').onchange=e=>slots[i].autoCash=+e.target.value||null});
-// Separate admin bridge: BroadcastChannel plus localStorage fallback.
-let adminChannel=null;
-const adminKey='aviator_demo_bus_v2';
-function adminSend(data){
- const packet={...data,ts:Date.now(),round};
- try{adminChannel?.postMessage(packet)}catch(e){}
- try{localStorage.setItem(adminKey,JSON.stringify(packet))}catch(e){}
-}
-function adminStatus(){
- return {type:'game-state',phase,multiplier:+mult.toFixed(2),round,history:history.slice(),nextCrash:+crashAt.toFixed(2)};
-}
-function receiveAdmin(d){
- if(!d)return;
- if(d.type==='set-next' && Number(d.value)>=1.01 && Number(d.value)<=100){
-   manualNext=Number(d.value);
-   if(phase==='waiting')crashAt=manualNext;
-   adminSend({type:'ack',message:'পরবর্তী রাউন্ডের ফলাফল সেট হয়েছে: '+manualNext.toFixed(2)+'x'});
+ const $=id=>document.getElementById(id),fmt=n=>Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+ const API='https://tk777-api.dhmatelecom.workers.dev',token=()=>localStorage.getItem('tk777-api-user-token');
+ const call=async(path,opts={})=>{const r=await fetch(API+path,{method:opts.method||'GET',cache:'no-store',headers:{'Content-Type':'application/json',...(token()?{Authorization:'Bearer '+token()}:{})},...(opts.body?{body:JSON.stringify(opts.body)}:{})});const d=await r.json().catch(()=>({}));if(!r.ok||d.success===false)throw Error(d.message||'API error '+r.status);return d};
+ let user=null,balance=0,round=0,phase='waiting',mult=1,roundStartedAt=0,history=[],bets=[],slots=[0,1].map(()=>({amount:100,bet:null,tab:'Bet',autoCash:null}));
+ const root=$('betPanels');
+ if(!token()){alert('গেম খেলতে আগে Login করুন।');location.href='index.html';return}
+ root.innerHTML=slots.map((s,i)=>`<section class="bet-area" data-slot="${i}"><div class="bet-tabs"><button class="active" data-tab="Bet">Bet</button><button data-tab="Auto">Auto</button></div><div class="bet-content"><div class="left-controls"><div class="amount"><button data-minus type="button">−</button><input class="amountInput" type="number" inputmode="numeric" min="1" max="1000000" step="1" value="100" aria-label="Custom bet amount" style="width:92px;min-width:0;text-align:center;font-size:22px;font-weight:700;color:#fff;background:transparent;border:0;outline:none"><button data-plus type="button">+</button></div><div class="presets"><button data-amount="100">100</button><button data-amount="200">200</button><button data-amount="500">500</button><button data-amount="1000">1,000</button></div><div class="autoOptions" hidden style="font-size:11px;color:#aaa;margin-top:8px">Auto cash out × <input class="autoCash" type="number" min="1.01" step=".01" placeholder="e.g. 2.00" style="width:65px;background:#111;color:white;border:1px solid #555;border-radius:5px;padding:5px"></div></div><button class="bet-action">Bet<br>100.00 BDT</button></div></section>`).join('');
+ function paintBalance(){ $('balance').textContent=fmt(balance); }
+ function historyRender(){const el=$('myBetHistoryList');if(!el)return;const rows=bets.filter(x=>['won','lost','cancelled'].includes(x.state)).slice(0,20);el.innerHTML=rows.length?rows.map(x=>`<div class="my-bet-row"><div><b>${x.state.toUpperCase()}</b><div style="color:#888;margin-top:3px">Round ${x.round}</div></div><div style="text-align:right"><b>${fmt(x.stake)} coins</b><div style="color:${x.state==='won'?'#20ad08':'#f20b48'};margin-top:3px">${x.state==='won'?'+':''}${fmt(x.state==='won'?x.payout-x.stake:-x.stake)} coins</div></div></div>`).join(''):'এখনো কোনো বেট হিস্টরি নেই।';}
+ function getSlotBet(i){return bets.find(x=>Number(x.slot)===i&&Number(x.round)===round&&['pending','active'].includes(x.state))||null}
+ function render(){paintBalance();$('multiplier').textContent=fmt(mult)+'x';$('multiplier').style.color=phase==='crashed'?'#f20b48':'#fff';$('crashLabel').style.display=phase==='crashed'?'block':'none';
+  slots.forEach((s,i)=>{s.bet=getSlotBet(i);const p=root.querySelector(`[data-slot="${i}"]`),btn=p.querySelector('.bet-action');p.querySelector('.amountInput').value=String(s.amount);p.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===s.tab));p.querySelector('.autoOptions').hidden=s.tab!=='Auto';btn.className='bet-action';btn.disabled=false;
+   if(!s.bet){btn.innerHTML=`Bet<br>${fmt(s.amount)} BDT`;btn.disabled=phase!=='waiting'}
+   else if(s.bet.state==='pending'){btn.textContent='Cancel';btn.classList.add('cancel');btn.disabled=phase!=='waiting'}
+   else if(s.bet.state==='active'){btn.innerHTML=`Cash Out<br>${fmt(s.bet.stake*mult)} BDT`;btn.classList.add('cash');btn.disabled=phase!=='flying'}
+   else{btn.textContent=s.bet.state==='won'?'Cashed Out':'FLEW AWAY!';btn.disabled=true}
+  });historyRender();
  }
- if(d.type==='random-next' && phase==='waiting'){
-   manualNext=+(1.1+Math.random()*5.5).toFixed(2);crashAt=manualNext;
-   adminSend({type:'ack',message:'র‍্যান্ডম ফলাফল তৈরি হয়েছে: '+manualNext.toFixed(2)+'x'});
+ async function refreshBets(){const d=await call('/api/game/bets');bets=d.bets||[];}
+ let lastBalanceSync=0; async function syncBalance(force=false){const now=Date.now();if(!force&&now-lastBalanceSync<2000)return;lastBalanceSync=now;const u=await call('/api/user/me');balance=Number(u.user.balance||0);paintBalance()}
+ let refreshing=false; async function refreshGame(){if(refreshing)return;refreshing=true;try{const d=await call('/api/game/state');const g=d.game;if(!g)return;const changed=round!==Number(g.round);round=Number(g.round);phase=g.phase;mult=Number(g.multiplier||1);roundStartedAt=Number(g.roundStartedAt||0);history=(g.history||[]).map(v=>Number(v).toFixed(2)+'x');if(history.length)$('history').innerHTML=history.map(v=>'<span>'+v+'</span>').join('')+'<span class="more">•••</span>';await refreshBets();
+   for(let i=0;i<2;i++){const b=getSlotBet(i),s=slots[i];if(b&&b.state==='active'&&phase==='flying'&&s.autoCash&&mult>=s.autoCash&&!s.autoBusy){s.autoBusy=true;try{await call('/api/game/bet/cashout',{method:'POST',body:{id:b.id,autoMultiplier:s.autoCash}});const u=await call('/api/user/me');balance=Number(u.user.balance||0);await refreshBets()}catch(e){}finally{s.autoBusy=false}}}
+   await syncBalance();render();
+  }catch(e){if(/unauthorized/i.test(e.message)){alert('Session শেষ হয়েছে। আবার Login করুন।');location.href='index.html'}else console.warn(e)}finally{refreshing=false}}
+ async function action(i){const s=slots[i],b=getSlotBet(i);try{
+  if(b?.state==='pending'&&phase==='waiting'){await call('/api/game/bet/cancel',{method:'POST',body:{id:b.id}})}
+  else if(b?.state==='active'&&phase==='flying'){await call('/api/game/bet/cashout',{method:'POST',body:{id:b.id}})}
+  else if(!b&&phase==='waiting'){await call('/api/game/bet',{method:'POST',body:{amount:s.amount,slot:i}})}
+  await syncBalance(true);await refreshGame();
+ }catch(e){alert(e.message);await syncBalance(true).catch(()=>{});await refreshGame()}}
+ root.querySelectorAll('[data-slot]').forEach(p=>{const i=Number(p.dataset.slot);p.querySelector('.bet-action').onclick=()=>action(i);p.querySelector('[data-minus]').onclick=()=>{slots[i].amount=Math.max(1,slots[i].amount-10);render()};p.querySelector('[data-plus]').onclick=()=>{slots[i].amount=Math.min(1000000,slots[i].amount+10);render()};p.querySelector('.amountInput').oninput=e=>{const raw=e.target.value,v=Number(raw);if(raw!==''&&Number.isInteger(v)&&v>=1&&v<=1000000){slots[i].amount=v;if(!slots[i].bet)p.querySelector('.bet-action').innerHTML='Bet<br>'+fmt(v)+' BDT'}};p.querySelector('.amountInput').onchange=e=>{const v=Number(e.target.value);if(!Number.isInteger(v)||v<1||v>1000000){alert('১ থেকে ১০,০০,০০০ পূর্ণসংখ্যা দিন।');e.target.value=String(slots[i].amount);return}slots[i].amount=v;render()};p.querySelectorAll('[data-amount]').forEach(b=>b.onclick=()=>{slots[i].amount=Number(b.dataset.amount);render()});p.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{slots[i].tab=b.dataset.tab;render()});p.querySelector('.autoCash').onchange=e=>slots[i].autoCash=Number(e.target.value)>=1.01?Number(e.target.value):null});
+ document.querySelectorAll('[data-lower-tab]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-lower-tab]').forEach(x=>x.classList.toggle('active',x===b));$('myBetHistory').style.display=b.dataset.lowerTab==='mine'?'block':'none';}));
+ const canvas=$('flight'),ctx=canvas.getContext('2d');function resize(){const r=$('arena').getBoundingClientRect();canvas.width=r.width*devicePixelRatio;canvas.height=r.height*devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0)}window.addEventListener('resize',resize);resize();
+ function paint(){
+  const dpr=window.devicePixelRatio||1,w=canvas.width/dpr,h=canvas.height/dpr;
+  if(!w||!h)return;ctx.clearRect(0,0,w,h);
+  // Animate from the server round start time, not the rounded 2-decimal
+  // multiplier. The old formula divided by (multiplier - 1), making t=1
+  // forever as soon as the multiplier reached 2.00x (the plane looked frozen).
+  let t=0;
+  if(phase==='flying'&&roundStartedAt){const elapsed=Math.max(0,Date.now()/1000-roundStartedAt);t=Math.max(0,Math.min(.98,1-Math.exp(-elapsed/7)));}
+  else if(phase==='crashed')t=Math.max(0,Math.min(.98,1-Math.exp(-Math.max(0,Math.log(Math.max(1,mult))/.17)/7)));
+  const x=30+t*w*.72,y=h-20-Math.pow(t,1.35)*h*.76;
+  if(phase==='flying'||phase==='crashed'){
+   ctx.beginPath();ctx.moveTo(18,h-4);ctx.bezierCurveTo(w*.2,h-5,w*.22,h*.7,x,y);ctx.lineTo(x,h-4);ctx.closePath();ctx.fillStyle='rgba(229,0,47,.36)';ctx.fill();
+   ctx.beginPath();ctx.moveTo(18,h-4);ctx.bezierCurveTo(w*.2,h-5,w*.22,h*.7,x,y);ctx.strokeStyle='#f20b48';ctx.lineWidth=4;ctx.stroke();
+  }
+  // Keep the plane visible at the runway during the waiting countdown too.
+  ctx.save();ctx.translate(x,y);ctx.rotate(phase==='waiting'?0:-.2);ctx.fillStyle='#f20b48';ctx.beginPath();ctx.moveTo(-25,2);ctx.lineTo(12,-4);ctx.lineTo(23,-18);ctx.lineTo(27,-17);ctx.lineTo(22,-3);ctx.lineTo(38,1);ctx.lineTo(38,5);ctx.lineTo(19,7);ctx.lineTo(10,18);ctx.lineTo(5,17);ctx.lineTo(8,7);ctx.lineTo(-19,10);ctx.closePath();ctx.fill();ctx.restore();
  }
- if(d.type==='crash-now')crash();
-}
-try{
- adminChannel=new BroadcastChannel('aviator-demo-admin-v2');
- adminChannel.onmessage=ev=>receiveAdmin(ev.data);
- adminChannel.postMessage({type:'game-ready',...adminStatus()});
-}catch(e){}
-window.addEventListener('storage',e=>{
- if(e.key===adminKey&&e.newValue){try{receiveAdmin(JSON.parse(e.newValue))}catch(err){}}
-});
-window.addEventListener('storage',e=>{if(e.key==='tk777-users'){const latest=readWalletBalance();if(Number.isFinite(latest)){balance=latest;render();}}});
-setInterval(()=>adminSend(adminStatus()),1000);
-const canvas=$('flight'),ctx=canvas.getContext('2d');
-function resize(){let r=$('arena').getBoundingClientRect();canvas.width=r.width*devicePixelRatio;canvas.height=r.height*devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0)}window.addEventListener('resize',resize);resize();
-function paint(){let w=canvas.width/devicePixelRatio,h=canvas.height/devicePixelRatio;ctx.clearRect(0,0,w,h);if(phase!=='flying'&&phase!=='crashed')return;let t=Math.max(0,Math.min(1,(mult-1)/Math.max(.01,crashAt-1)));let x=30+t*w*.55,y=h-12-Math.pow(t,1.55)*h*.72;ctx.beginPath();ctx.moveTo(18,h-4);ctx.bezierCurveTo(w*.2,h-5,w*.22,h*.7,x,y);ctx.lineTo(x,h-4);ctx.closePath();ctx.fillStyle='rgba(229,0,47,.36)';ctx.fill();ctx.beginPath();ctx.moveTo(18,h-4);ctx.bezierCurveTo(w*.2,h-5,w*.22,h*.7,x,y);ctx.strokeStyle='#f20b48';ctx.lineWidth=4;ctx.stroke();ctx.save();ctx.translate(x,y);ctx.rotate(-.2);ctx.fillStyle='#f20b48';ctx.beginPath();ctx.moveTo(-25,2);ctx.lineTo(12,-4);ctx.lineTo(23,-18);ctx.lineTo(27,-17);ctx.lineTo(22,-3);ctx.lineTo(38,1);ctx.lineTo(38,5);ctx.lineTo(19,7);ctx.lineTo(10,18);ctx.lineTo(5,17);ctx.lineTo(8,7);ctx.lineTo(-19,10);ctx.closePath();ctx.fill();ctx.restore()}
-function loop(){let now=Date.now();if(phase==='waiting'&&now>=waitUntil)startRound();if(phase==='flying'){mult=Math.exp((now-started)/1000*.17);slots.forEach(s=>{if(s.bet?.state==='active'&&s.autoCash&&mult>=s.autoCash){s.bet.payout=s.bet.stake*s.autoCash;balance+=s.bet.payout;s.bet.state='won';saveWalletBalance();addBetHistory('Auto Cash Out',s.bet.stake,s.bet.payout-s.bet.stake,`মোট ফেরত ${fmt(s.bet.payout)}`)}});if(mult>=crashAt)crash();else render()}paint();requestAnimationFrame(loop)}
-nextRound();loop();
-// Stable, readable demo player count: changes by a few users at a time.
-let visiblePlayers=1691;
-$('players').textContent=visiblePlayers.toLocaleString('en-US');
-setInterval(()=>{
- const delta=(Math.floor(Math.random()*5)+1)*(Math.random()<.5?-1:1);
- visiblePlayers=Math.max(14,Math.min(1704,visiblePlayers+delta));
- $('players').textContent=visiblePlayers.toLocaleString('en-US');
-},1500);
-
+ function loop(){paint();requestAnimationFrame(loop)}
+ async function init(){loop();try{const d=await call('/api/user/me');user=d.user;balance=Number(user.balance||0);await refreshGame();setInterval(refreshGame,500);window.addEventListener('focus',refreshGame);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshGame()});}catch(e){alert('Login প্রয়োজন: '+e.message);location.href='index.html'}}
+ $('players').textContent='—';init();
 })();
-</script></body></html>
+</script>
+</body></html>
