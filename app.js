@@ -1,0 +1,12 @@
+const $=s=>document.querySelector(s);
+let balance=12500, games=8, running=false, cashed=false, multiplier=1, crashAt=0, timer=null;
+const fmt=n=>Math.round(n).toLocaleString('en-US');
+function showBalance(){ $('#balance').textContent=fmt(balance); $('#gamesPlayed').textContent=String(games).padStart(2,'0'); }
+$('#menuBtn').addEventListener('click',()=>document.querySelector('.sidebar').classList.toggle('open'));
+$('#playBtn').addEventListener('click',()=>$('#gameModal').classList.add('show'));
+$('#closeGame').addEventListener('click',()=>{if(!running)$('#gameModal').classList.remove('show')});
+$('#gameModal').addEventListener('click',e=>{if(e.target.id==='gameModal'&&!running)$('#gameModal').classList.remove('show')});
+function finish(win){clearInterval(timer);running=false;$('#cashoutBtn').disabled=true;$('#startRound').disabled=false;$('#startRound').textContent='আবার খেলুন';games++;if(win){const amount=Math.floor(Number($('#betAmount').value)*multiplier);balance+=amount;$('#flightStatus').textContent=`ক্যাশ আউট সফল: +৳ ${fmt(amount)} TK222 Credits`;$('#points').textContent='+'+fmt(2450+amount)}else{$('#flightStatus').textContent=`রাউন্ড শেষ — ৳ ${fmt(Number($('#betAmount').value))} ক্রেডিট ব্যবহৃত`;};showBalance();}
+$('#startRound').addEventListener('click',()=>{const bet=Number($('#betAmount').value);if(!Number.isFinite(bet)||bet<10||bet>5000||bet>balance){$('#flightStatus').textContent='১০–৫,০০০ এর মধ্যে বৈধ বেট দিন';return}balance-=bet;showBalance();running=true;cashed=false;multiplier=1;crashAt=1.25+Math.random()*4.5;$('#multiplier').textContent='1.00x';$('#flightStatus').textContent='বিমান উড়ছে…';$('#startRound').disabled=true;$('#cashoutBtn').disabled=false;timer=setInterval(()=>{multiplier*=1.018;$('#multiplier').textContent=multiplier.toFixed(2)+'x';if(multiplier>=crashAt){finish(false)}},100)});
+$('#cashoutBtn').addEventListener('click',()=>{if(running&&!cashed){cashed=true;const bet=Number($('#betAmount').value);const payout=Math.floor(bet*multiplier);balance+=payout;clearInterval(timer);running=false;$('#cashoutBtn').disabled=true;$('#startRound').disabled=false;$('#startRound').textContent='আবার খেলুন';games++;$('#flightStatus').textContent=`ক্যাশ আউট: +৳ ${fmt(payout)} TK222 Credits (${multiplier.toFixed(2)}x)`;$('#points').textContent='+'+fmt(2450+payout);showBalance()}});
+showBalance();
