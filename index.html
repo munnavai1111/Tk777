@@ -170,6 +170,20 @@ main{padding:10px}.balancebar{display:flex;align-items:center;justify-content:sp
 </div>
 <div id="bonusPopup" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="bonusPopupText" onclick="if(event.target===this)closeBonusPopup()"><div class="modal-box"><p id="bonusPopupText">বোনাস ক্লেইম করতে আগে ডিপজিট করুন</p><button type="button" onclick="closeBonusPopup()">কেটে দিন</button></div></div>
 <script>
+/* TK777 API bridge - account authentication and server balance display. */
+(()=>{
+ const API='https://tk777-api.dhmatelecom.workers.dev';
+ const tokenKey='tk777-api-user-token';
+ const req=async(path,opts={})=>{const token=localStorage.getItem(tokenKey);const r=await fetch(API+path,{method:opts.method||'GET',headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},...(opts.body?{body:JSON.stringify(opts.body)}:{})});const d=await r.json().catch(()=>({}));if(!r.ok||d.success===false)throw new Error(d.message||'API error '+r.status);return d};
+ window.TK777API={base:API,request:req,token:()=>localStorage.getItem(tokenKey),logout:async()=>{try{await req('/api/logout',{method:'POST'})}finally{localStorage.removeItem(tokenKey);localStorage.removeItem('tk777-current')}},refreshUser:async()=>{const d=await req('/api/user/me');return d.user}};
+ if(location.pathname.endsWith('/admin.html')){
+  const gate=document.createElement('div');gate.id='tk777ApiAdminGate';gate.style='position:fixed;inset:0;background:#08080cf2;z-index:999999;display:flex;align-items:center;justify-content:center;padding:20px;font-family:Arial';
+  gate.innerHTML='<div style="background:#202027;color:white;padding:24px;border-radius:14px;width:min(360px,100%)"><h2>TK777 Admin Login</h2><input id="tk777-au" value="tk777admin" style="box-sizing:border-box;width:100%;padding:12px;margin:6px 0"><input id="tk777-ap" type="password" placeholder="Admin password" style="box-sizing:border-box;width:100%;padding:12px;margin:6px 0"><button id="tk777-al" style="padding:11px 18px">Login</button><p id="tk777-ae" style="color:#ff9999"></p></div>';
+  document.addEventListener('DOMContentLoaded',()=>{document.body.appendChild(gate);document.getElementById('tk777-al').onclick=async()=>{const b=document.getElementById('tk777-al'),e=document.getElementById('tk777-ae');b.disabled=true;try{const r=await fetch(API+'/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:document.getElementById('tk777-au').value,password:document.getElementById('tk777-ap').value})});const d=await r.json();if(!r.ok||!d.success)throw Error(d.message||'Login failed');sessionStorage.setItem('tk777-admin-token',d.token);gate.remove();}catch(x){e.textContent=x.message;b.disabled=false}};});
+ }
+})();
+</script>
+<script>
 let mode='login',current='';
 const $=id=>document.getElementById(id);
 function users(){try{return JSON.parse(localStorage.getItem('tk777-users')||'{}')}catch(e){return {}}}
@@ -296,7 +310,7 @@ wireChoices('walletGroups','group',v=>{walletGroup=v;$('walletTypeLabel').textCo
 function makeCode(prefix){return prefix+'-'+Math.random().toString(36).slice(2,7).toUpperCase()+'-'+Date.now().toString().slice(-6)}
 function createCoinRequest(){
  const amount=Number($('coinAmount').value);
- if(!Number.isInteger(amount)||amount<1||amount>100000){alert('১ থেকে ১০০,০০০ এর মধ্যে টাকার পরিমাণ দিন।');return;}
+ if(!Number.isInteger(amount)||amount<1||amount>100000){alert('১ থেকে ১০০,০০০ এর মধ্যে ভার্চুয়াল কয়েনের পরিমাণ দিন।');return;}
  let reqs=[];try{reqs=JSON.parse(localStorage.getItem('tk777-coin-requests')||'[]')}catch(e){}
  const code=makeCode('TKV');
  reqs.push({code,username:current,amount,method:selectedMethod,channel:selectedChannel,status:'pending',createdAt:new Date().toISOString(),kind:'virtual-credit'});
@@ -381,7 +395,7 @@ document.querySelectorAll('[data-bonus]').forEach(btn=>btn.addEventListener('cli
  if(Number(u.approvedDeposits||0)<1){$('bonusMessage').textContent='বোনাস ক্লেইম করতে আগে ডিপোজিট করুন।';return;}
  u.balance=Number(u.balance||0)+values[id];u.claimedBonuses[id]=true;
  localStorage.setItem('tk777-users',JSON.stringify(db));
- $('bonusMessage').textContent=values[id]+' টাকা যোগ হয়েছে।।';
+ $('bonusMessage').textContent=values[id]+' ভার্চুয়াল কয়েন যোগ হয়েছে। এটি বাস্তব অর্থ নয়।';
  $('bonusBalance').textContent='৳ '+Number(u.balance).toFixed(2);updateBonusButtons();render();
 }));
 function savePersonalInfo(){
