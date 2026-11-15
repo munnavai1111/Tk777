@@ -1,11 +1,13 @@
-TK777 VIDEO-STYLE FRONTEND
+TK777 – GRAPHIC REDESIGN
 
-এই সংস্করণটি আপনার আপলোড করা ভিডিওর মোবাইল UI থেকে অনুপ্রাণিত: ডার্ক/ব্ল্যাক ব্যাকগ্রাউন্ড, লাল Aviator ব্র্যান্ডিং, multiplier history strip, রাইজিং red graph, দুইটি bet panel-এর ভিজ্যুয়াল বিন্যাস, category grid, game cards এবং bottom navigation.
+এই ZIP-এ বাস্তব গ্রাফিক ইমেজ অ্যাসেট রয়েছে: assets/plane-scene.png (লাল বিমান ও ঝড়ের মেঘ), সঙ্গে CSS-ভিত্তিক Aviator multiplier graph, dark game panels, category icons, game cards এবং mobile navigation।
 
-API: আপনার দেওয়া Worker URL assets/config.js-এ সেট করা আছে। Worker কোড পরিবর্তন প্রয়োজন নেই।
+দেখার নিয়ম (গুরুত্বপূর্ণ): ZIP-এর HTML ফাইলকে File Manager-এর Text/Preview দিয়ে খুলবেন না—তাহলে HTML কোড/লেখা দেখা যাবে। ZIP Extract করে সব ফাইল GitHub repository-র root-এ আপলোড করুন (index.html root-এ, assets ফোল্ডারসহ)। তারপর GitHub Pages বা Cloudflare Pages-এর প্রকাশিত website URL Chrome-এ খুলুন।
 
-যে API-সমর্থিত ফিচারগুলো কাজ করে: register, login, logout, /api/user/me, transaction history, deposit/withdraw request, admin login/dashboard/users/transactions, admin balance set, approve/reject.
+API: assets/config.js-এ আপনার Worker URL দেওয়া আছে। Worker কোড বদলানোর প্রয়োজন নেই।
 
-গুরুত্বপূর্ণ: আপনার Worker-এ /api/game/state, bet placement, cashout, game round বা game history route নেই। তাই Aviator পেজে ভিডিওর মতো game layout দেখানো হয়েছে, কিন্তু bet controls নিষ্ক্রিয়; টাকা কাটা/জেতার ভুয়া কার্যকারিতা দেখানো হয়নি।
+API-তে সমর্থিত: register, login, logout, user profile/balance, transaction history, deposit/withdraw request, admin login/dashboard/users/transactions, admin balance set, approve/reject.
 
-GitHub: ZIP extract করে সব ফাইল repository root-এ upload করুন। index.html root-এ থাকবে। GitHub Pages/Cloudflare Pages-এ deploy করুন। Admin: /admin.html; username tk777admin, password Worker secret ADMIN_PASSWORD.
+সীমাবদ্ধতা: Worker-এ game round, bet, cashout, game state API নেই। তাই Aviator-এর visual screen তৈরি হলেও bet buttons disabled রাখা হয়েছে; টাকা কাটা/জেতার ভুয়া হিসাব করা হয় না।
+
+Admin: /admin.html | Username: tk777admin | Password: Cloudflare Worker secret ADMIN_PASSWORD.
