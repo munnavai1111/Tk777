@@ -1,184 +1,34 @@
 <!doctype html>
-<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Aviator Admin Panel</title>
+<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101012"><title>TK777 Admin</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#101012;color:#eee;font-family:Arial,sans-serif}.wrap{max-width:520px;margin:25px auto;padding:16px}.card{background:#1d1d21;border:1px solid #444;border-radius:14px;padding:18px;margin-bottom:14px}h1{font-size:24px;color:#f20b48;margin:0 0 8px}.muted{color:#aaa;font-size:13px;line-height:1.5}label{display:block;font-size:13px;color:#ccc;margin:14px 0 6px}input{width:100%;padding:12px;border-radius:7px;background:#111;color:#fff;border:1px solid #555;font-size:16px}button{border:0;border-radius:8px;padding:12px 15px;color:white;background:#444;font-size:14px;font-weight:bold;cursor:pointer}.primary{background:#20ad08}.danger{background:#a51d38}.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.row button{flex:1}.status{padding:10px;border-radius:7px;background:#121216;color:#b8e7ad;font-size:13px;margin-top:12px}.link{color:#aaa;font-size:13px}
+*{box-sizing:border-box}body{margin:0;background:#101012;color:#eee;font-family:Arial,sans-serif}.wrap{max-width:980px;margin:auto;padding:16px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:8px 0 18px}h1{color:#f2c45e;margin:0;font-size:25px}.muted{color:#aaa;font-size:13px;line-height:1.5}.card{background:#1d1d21;border:1px solid #3c3c43;border-radius:13px;padding:16px;margin:12px 0}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.stat{background:#121216;border:1px solid #36363c;border-radius:10px;padding:13px}.stat b{display:block;font-size:23px;color:#f2c45e;margin-top:7px}button,input,select{font:inherit}button{border:0;border-radius:7px;padding:10px 13px;background:#444;color:#fff;font-weight:bold;cursor:pointer}button.primary{background:#218b36}button.danger{background:#a52640}button.gold{background:#a9791d;color:#160f03}button:disabled{opacity:.5;cursor:not-allowed}input,select{background:#111;color:#fff;border:1px solid #555;border-radius:7px;padding:10px;min-width:0}label{display:block;color:#ccc;font-size:13px;margin:9px 0 5px}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row input{flex:1;min-width:120px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.tabs button.active{background:#a9791d;color:#160f03}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:650px}th,td{text-align:left;padding:10px;border-bottom:1px solid #38383d;font-size:13px}th{color:#e9c66f}td small{color:#aaa}.pill{display:inline-block;padding:4px 8px;border-radius:20px;background:#333;font-size:11px}.ok{color:#8ce19c}.bad{color:#ff9292}.pending{color:#f3cf75}.notice{padding:10px;border-radius:8px;background:#121216;color:#c9c9ce;margin-top:10px;font-size:13px;white-space:pre-wrap}.hidden{display:none!important}.actions{display:flex;gap:6px;flex-wrap:wrap}.actions button{padding:7px 9px;font-size:12px}.login{max-width:390px;margin:10vh auto}.login input{width:100%;margin:5px 0}.search{max-width:260px}@media(max-width:650px){.grid{grid-template-columns:repeat(2,1fr)}.wrap{padding:10px}.card{padding:12px}}
 </style></head><body><main class="wrap">
-<div class="card"><h1>AVIATOR — ADMIN</h1><div class="muted">আলাদা অ্যাডমিন কন্ট্রোল প্যানেল। রাউন্ড ও Crash ফলাফল Cloud D1-এ সবার জন্য একই থাকে।</div></div>
-<div class="card"><h3>☁️ Cloud Dashboard</h3><div class="muted">সার্ভারের আসল ইউজার, ভার্চুয়াল কয়েন ও রিকোয়েস্টের হিসাব।</div><div id="cloudStats" class="status">লোড হচ্ছে…</div><button id="refreshCloud" style="margin-top:10px">ড্যাশবোর্ড রিফ্রেশ</button></div>
-<div class="card"><h3>👥 Cloud Users & Balance</h3><div class="muted">সার্ভারের সব ইউজার দেখা যাবে। ব্যালেন্স সেট করলে সব ডিভাইসে কার্যকর হবে।</div><div id="cloudUsers" class="status">লোড হচ্ছে…</div></div>
-<div class="card"><h3>💳 Cloud Deposit / Withdraw Requests</h3><div class="muted">শুধু ভার্চুয়াল কয়েন। Approve/Reject সার্ভার ডাটাবেসে সংরক্ষিত হবে।</div><div id="cloudTransactions" class="status">লোড হচ্ছে…</div><button id="refreshCloudTransactions" style="margin-top:10px">রিকোয়েস্ট রিফ্রেশ</button></div>
-<div class="card"><h3>পরবর্তী রাউন্ডের Crash Multiplier</h3>
-<label for="crash">Multiplier (1.01x – 100x)</label><input id="crash" type="number" min="1.01" max="100" step=".01" value="2.00">
-<div class="row"><button class="primary" id="set">পরবর্তী ফলাফল সেট করুন</button><button id="random">Random ফলাফল</button></div>
-<div class="status" id="status">কমান্ড পাঠানোর জন্য প্রস্তুত।</div><div style="margin-top:14px;padding:14px;border:1px solid #5a4826;border-radius:10px;background:#111"><div style="color:#d5c08a;font-size:12px;font-weight:bold">NEXT ROUND CRASH</div><div id="nextCrashValue" style="font-size:42px;font-weight:900;color:#20ad08;margin-top:4px">লোড হচ্ছে…</div><div id="currentRoundValue" class="muted">বর্তমান রাউন্ডের তথ্য লোড হচ্ছে…</div></div></div>
-<div class="card"><h3>গেমের অবস্থা ও Crash History</h3>
-<div class="status" id="connection">গেমের সঙ্গে সংযোগের অপেক্ষায়...</div>
-<div class="status" id="liveState">রাউন্ডের তথ্য এখনো পাওয়া যায়নি।</div>
-<div id="crashHistory" style="display:flex;flex-wrap:wrap;gap:7px;margin-top:12px;color:#f1b5ce;font-weight:bold"><span class="muted">এখনো কোনো ক্র্যাশ হিস্টরি নেই।</span></div>
-</div>
-<div class="card"><h3>Virtual Coin Requests</h3>
-<div class="muted">শুধু ভার্চুয়াল কয়েন। এখানে বাস্তব পেমেন্ট বা Transaction ID যাচাই করা হয় না। একই ব্রাউজার/ডোমেইনের স্থানীয় অনুরোধগুলো এখানে দেখা যাবে।</div>
-<div id="coinRequests" class="status">কোনো অনুরোধ নেই।</div>
-<button id="refreshCoinRequests" style="margin-top:10px">অনুরোধ রিফ্রেশ</button>
-</div>
-<div class="card"><h3>Virtual Withdrawal Requests</h3>
-<div class="muted">এখানে শুধু ভার্চুয়াল কয়েনের অনুরোধ দেখা যায়। কোনো বাস্তব টাকা পাঠানো বা পেআউট করা হয় না।</div>
-<div id="virtualWithdrawals" class="status">কোনো অনুরোধ নেই।</div>
-<button id="refreshVirtualWithdrawals" style="margin-top:10px">অনুরোধ রিফ্রেশ</button>
-</div>
-<div class="card"><h3>🎁 Bonus Management</h3><div class="muted">বোনাস যোগ, সম্পাদনা বা মুছে ফেলুন। এই legacy settings এই ডিভাইসেই থাকে; Cloud balance বা game result বদলায় না।</div>
-<label>বোনাসের নাম</label><input id="bonusTitle" placeholder="যেমন: নতুন ইউজার বোনাস"><label>বোনাসের পরিমাণ (Virtual Coins)</label><input id="bonusAmount" type="number" min="1" step="1" placeholder="যেমন: 50"><label>বিবরণ</label><input id="bonusDescription" placeholder="প্রতি অ্যাকাউন্টে একবার"><div class="row"><button class="primary" id="addBonus">বোনাস Add করুন</button></div><div id="adminBonusList" class="status">বোনাস লোড হচ্ছে...</div></div>
-<div class="card"><h3>গেমের কনটেন্ট ও ডিজাইন</h3>
-<div class="muted">এই সংস্করণে হোমপেজের ব্র্যান্ড, ব্যানার, নোটিশ ও মূল রঙ পরিবর্তন করা যাবে। পরিবর্তন একই ব্রাউজার/ডোমেইনে সংরক্ষিত হবে।</div>
-<label>গেম লোগো / ব্র্যান্ড লেখা</label><input id="cfgLogo" placeholder="👑 TK777">
-<label>ব্যানারের শিরোনাম</label><input id="cfgBannerHeading" placeholder="জ্যাকপট জিতুন">
-<label>ব্যানারের সাবটাইটেল</label><input id="cfgBannerSubtitle" placeholder="TK777 • GAMES • ENTERTAINMENT">
-<label>হোমপেজ নোটিশ</label><input id="cfgHomeNotice" placeholder="নোটিশ লিখুন">
-<label>প্রধান রঙ (CSS color)</label><input id="cfgThemeColor" placeholder="#e8bd54">
-<label>ব্যানার ব্যাকগ্রাউন্ড (CSS color/gradient)</label><input id="cfgBannerColor" placeholder="radial-gradient(...)">
-<div class="row"><button class="primary" id="saveSiteSettings">সাইট কনটেন্ট সংরক্ষণ</button><button id="reloadSiteSettings">রিফ্রেশ</button></div>
-<div class="status" id="siteSettingsStatus">কনটেন্ট সেটিংস লোড হয়নি।</div></div>
-<div class="card"><h3>📝 সব পেজের লেখা সম্পাদনা</h3>
-<div class="muted">সাইটের দৃশ্যমান টেক্সটগুলো JSON আকারে বের করে পরিবর্তন করুন। একই লেখা একাধিক জায়গায় থাকলে সব জায়গায় বদলাবে। Deposit পেজের নির্দেশনা/নাম্বারসহ টেক্সটও এখানে সম্পাদনা করা যাবে।</div>
-<div class="row"><button id="exportTexts">বর্তমান সব লেখা লোড করুন</button><button class="primary" id="saveTexts">লেখা সংরক্ষণ</button></div>
-<label>Text mapping JSON (পুরোনো লেখা : নতুন লেখা)</label><textarea id="textMap" rows="12" style="width:100%;padding:12px;border-radius:7px;background:#111;color:#fff;border:1px solid #555;font-size:13px"></textarea>
-<div class="status" id="textStatus">প্রথমে Load করুন, তারপর মান পরিবর্তন করে Save করুন।</div></div>
-<div class="card"><h3>💳 Deposit পেজের তথ্য</h3><div class="muted">Deposit পেজে প্রদর্শিত নির্দেশনা, পেমেন্ট পদ্ধতির নাম, নম্বর, শিরোনাম ইত্যাদি Text Editor থেকে পরিবর্তন করুন। নিচের সেটিংস JSON একই ব্রাউজারে সংরক্ষিত হবে।</div>
-<label>Deposit config JSON</label><textarea id="depositConfig" rows="6" style="width:100%;padding:12px;border-radius:7px;background:#111;color:#fff;border:1px solid #555" placeholder='{"bkashNumber":"01XXXXXXXXX","nagadNumber":"01XXXXXXXXX","instruction":"নতুন নির্দেশনা"}'></textarea>
-<div class="row"><button class="primary" id="saveDepositConfig">Deposit তথ্য সংরক্ষণ</button><button id="loadDepositConfig">বর্তমান তথ্য লোড</button></div><div class="status" id="depositStatus"></div></div>
-<div class="card"><h3>🎮 HTML Game / Slot যোগ করুন</h3><div class="muted">একটি HTML গেম ফাইল আপলোড করলে সেটি Game Categories-এ যোগ হবে। ফাইলটি LocalStorage-এ সংরক্ষিত থাকবে; বড় ফাইল ব্রাউজারের স্টোরেজ সীমা ছাড়াতে পারে।</div>
-<label>গেমের নাম</label><input id="newGameTitle" placeholder="যেমন: My Slot Game"><label>ক্যাটাগরি</label><input id="newGameCategory" placeholder="Slots"><label>আইকন (Emoji)</label><input id="newGameIcon" placeholder="🎰"><label>HTML ফাইল</label><input id="newGameFile" type="file" accept=".html,text/html">
-<div class="row"><button class="primary" id="addHtmlGame">গেম Add করুন</button></div><div id="adminGameList" class="status">কোনো কাস্টম গেম নেই।</div></div>
-<div class="card"><h3>চলতি রাউন্ড</h3><div class="muted">এই বাটন চাপলে গেমে চলমান রাউন্ড তাৎক্ষণিকভাবে Crash হবে।</div><div class="row"><button class="danger" id="crashNow">CRASH NOW</button></div></div>
-<div class="card"><div class="muted">নোট: গেমের রাউন্ড ও Next Crash এখন Cloud D1 ডাটাবেস থেকে নিয়ন্ত্রিত হয়।</div><p><a class="link" href="aviator.html">← গেমে ফিরে যান</a></p></div>
-</main>
+<section id="loginView" class="card login"><h1>TK777 Admin Login</h1><p class="muted">সার্ভার-ভিত্তিক Admin authentication</p><label>Username</label><input id="username" value="tk777admin" autocomplete="username"><label>Password</label><input id="password" type="password" autocomplete="current-password"><button id="loginBtn" class="gold" style="width:100%;margin-top:10px">Login</button><div id="loginMsg" class="notice"></div></section>
+<section id="appView" class="hidden"><div class="top"><div><h1>TK777 ADMIN PANEL</h1><div class="muted">সব পরিবর্তন Cloudflare D1 Database-এ সংরক্ষিত হবে</div></div><div class="row"><button id="refreshBtn">রিফ্রেশ</button><button id="logoutBtn" class="danger">Logout</button></div></div>
+<div class="grid"><div class="stat">মোট User<b id="statUsers">—</b></div><div class="stat">মোট Request<b id="statTx">—</b></div><div class="stat">Pending Request<b id="statPending">—</b></div><div class="stat">মোট User Balance<b id="statBalance">—</b></div></div>
+<div class="tabs"><button class="active" data-tab="users">ইউজার নিয়ন্ত্রণ</button><button data-tab="requests">Deposit / Withdraw</button><button data-tab="history">Transaction History</button></div>
+<section id="usersTab" class="card"><div class="row" style="justify-content:space-between"><h2>সকল ইউজার</h2><input class="search" id="userSearch" placeholder="Username দিয়ে খুঁজুন"></div><div class="tablewrap"><table><thead><tr><th>ID</th><th>Username</th><th>Balance</th><th>অবস্থা</th><th>নিয়ন্ত্রণ</th></tr></thead><tbody id="usersBody"><tr><td colspan="5">লোড হচ্ছে…</td></tr></tbody></table></div><div id="userMsg" class="notice"></div></section>
+<section id="requestsTab" class="card hidden"><h2>অপেক্ষমাণ ও অন্যান্য Request</h2><div class="tablewrap"><table><thead><tr><th>ID</th><th>User ID</th><th>ধরন</th><th>Amount</th><th>Status</th><th>সময়</th><th>Action</th></tr></thead><tbody id="requestsBody"></tbody></table></div><div id="requestMsg" class="notice"></div></section>
+<section id="historyTab" class="card hidden"><h2>Transaction History</h2><div class="tablewrap"><table><thead><tr><th>ID</th><th>User ID</th><th>ধরন</th><th>Amount</th><th>Status</th><th>সময়</th></tr></thead><tbody id="historyBody"></tbody></table></div></section>
+</section></main>
 <script>
-const CLOUD_API='https://tk777-api.dhmatelecom.workers.dev';
-const adminToken=()=>sessionStorage.getItem('tk777-admin-token');
-async function cloud(path,opts={}){const r=await fetch(CLOUD_API+path,{method:opts.method||'GET',headers:{'Content-Type':'application/json',...(adminToken()?{Authorization:'Bearer '+adminToken()}:{})},...(opts.body?{body:JSON.stringify(opts.body)}:{})});const d=await r.json().catch(()=>({}));if(!r.ok||d.success===false)throw Error(d.message||'API error '+r.status);return d}
-function showAdminLogin(){if(document.getElementById('cloudAdminGate'))return;const g=document.createElement('div');g.id='cloudAdminGate';g.style='position:fixed;inset:0;z-index:99999;background:#08080cf2;display:flex;align-items:center;justify-content:center;padding:18px;font-family:Arial';g.innerHTML='<div style="width:min(360px,100%);background:#202027;border:1px solid #555;border-radius:14px;padding:22px;color:#fff"><h2 style="color:#f20b48;margin-top:0">AVIATOR ADMIN LOGIN</h2><input id="cloudAdminUser" value="tk777admin" style="width:100%;padding:12px;margin:6px 0;background:#111;color:#fff;border:1px solid #555;border-radius:7px"><input id="cloudAdminPass" type="password" placeholder="Admin password" style="width:100%;padding:12px;margin:6px 0;background:#111;color:#fff;border:1px solid #555;border-radius:7px"><button id="cloudAdminLogin" style="width:100%;margin-top:8px;background:#20ad08">Login</button><p id="cloudAdminError" style="color:#ff9999"></p></div>';document.body.appendChild(g);g.querySelector('#cloudAdminLogin').onclick=async()=>{const b=g.querySelector('#cloudAdminLogin'),e=g.querySelector('#cloudAdminError');b.disabled=true;try{const r=await fetch(CLOUD_API+'/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:g.querySelector('#cloudAdminUser').value,password:g.querySelector('#cloudAdminPass').value})});const d=await r.json();if(!r.ok||!d.success)throw Error(d.message||'Login failed');sessionStorage.setItem('tk777-admin-token',d.token);g.remove();refreshCloudGame()}catch(x){e.textContent=x.message;b.disabled=false}}}
-async function refreshCloudGame(){try{await fetch(CLOUD_API+'/api/game/state',{cache:'no-store'});const d=await cloud('/api/admin/game');if(!d.game){document.getElementById('nextCrashValue').textContent='—';return}const v=Number(d.game.nextCrash||d.game.crashMultiplier);document.getElementById('nextCrashValue').textContent=v.toFixed(2)+'x';document.getElementById('currentRoundValue').textContent='বর্তমান রাউন্ড '+d.game.round+' · '+d.game.phase+(d.game.lastCrash?' · সর্বশেষ Crash '+Number(d.game.lastCrash).toFixed(2)+'x':'');}catch(e){if(/unauthorized/i.test(e.message)){sessionStorage.removeItem('tk777-admin-token');showAdminLogin()}else document.getElementById('currentRoundValue').textContent=e.message}}
-let channel=null;try{channel=new BroadcastChannel('aviator-cloud-admin-v3')}catch(e){}
-const connection=document.getElementById('connection');
-const liveState=document.getElementById('liveState');
-const historyBox=document.getElementById('crashHistory');
-function showHistory(items){if(!Array.isArray(items)||!items.length){historyBox.innerHTML='<span class="muted">এখনো কোনো ক্র্যাশ হিস্টরি নেই।</span>';return}historyBox.innerHTML=items.slice(0,12).map(v=>'<span style="background:#29212a;border:1px solid #71304b;border-radius:18px;padding:7px 10px">'+String(v).replace(/[<>&"]/g,'')+'</span>').join('')}
-function receive(data){if(!data)return;
- if(data.type==='game-ready'||data.type==='game-state'||data.type==='round-state'){
-   connection.textContent='গেমের সঙ্গে সংযোগ আছে ✓';
-   liveState.textContent='Round '+(data.round??'-')+' · '+(data.phase??'')+' · '+(data.multiplier?Number(data.multiplier).toFixed(2)+'x':'')+(data.nextCrash?' · Next crash '+Number(data.nextCrash).toFixed(2)+'x':'');
-   if(data.history)showHistory(data.history);
- }
- if(data.type==='history'){showHistory(data.history);connection.textContent='গেমের সঙ্গে সংযোগ আছে ✓'}
- if(data.type==='ack')status.textContent=data.message;
-}
-if(channel)channel.onmessage=ev=>receive(ev.data);
-try{window.addEventListener('storage',e=>{if(e.key==='aviator_cloud_bus_v3'&&e.newValue)receive(JSON.parse(e.newValue))})}catch(e){}
-setInterval(()=>{try{channel?.postMessage({type:'admin-ping'})}catch(e){}},2500);
-function send(data){const packet={...data,ts:Date.now()};if(channel)channel.postMessage(packet);try{localStorage.setItem('aviator_cloud_bus_v3',JSON.stringify(packet))}catch(e){}}
-function loadCoinRequests(){
- const box=document.getElementById('coinRequests');let reqs=[];
- try{reqs=JSON.parse(localStorage.getItem('tk777-coin-requests')||'[]')}catch(e){}
- if(!reqs.length){box.textContent='কোনো অনুরোধ নেই।';return;}
- box.innerHTML='';
- reqs.forEach((r,i)=>{
-  const item=document.createElement('div');item.style.cssText='padding:10px;margin:8px 0;background:#202027;border-radius:8px';
-  const info=document.createElement('div');info.textContent=r.code+' · '+r.username+' · '+r.amount+' কয়েন · '+r.method+' · '+(r.status==='approved'?'অনুমোদিত':'অপেক্ষমাণ');
-  item.appendChild(info);
-  if(r.status!=='approved'){
-   const btn=document.createElement('button');btn.className='primary';btn.style.marginTop='8px';btn.textContent='ভার্চুয়াল কয়েন অনুমোদন';
-   btn.onclick=()=>{let db={};try{db=JSON.parse(localStorage.getItem('tk777-users')||'{}')}catch(e){}
-    if(!db[r.username]){alert('এই ব্রাউজারে ইউজার অ্যাকাউন্ট পাওয়া যায়নি।');return;}
-    db[r.username].balance=Number(db[r.username].balance||0)+Number(r.amount);
-    db[r.username].approvedDeposits=Number(db[r.username].approvedDeposits||0)+1;
-    localStorage.setItem('tk777-users',JSON.stringify(db));r.status='approved';r.reviewedAt=new Date().toISOString();
-    localStorage.setItem('tk777-coin-requests',JSON.stringify(reqs));loadCoinRequests();
-   };
-   item.appendChild(btn);
-  }
-  box.appendChild(item);
- });
-}
-document.getElementById('refreshCoinRequests').onclick=loadCoinRequests;
-loadCoinRequests();
-function loadVirtualWithdrawals(){
- const box=document.getElementById('virtualWithdrawals');let reqs=[];
- try{reqs=JSON.parse(localStorage.getItem('tk777-virtual-withdrawals')||'[]')}catch(e){}
- if(!reqs.length){box.textContent='কোনো অনুরোধ নেই।';return;}
- box.innerHTML='';
- reqs.slice().reverse().forEach(r=>{
-  const item=document.createElement('div');item.style.cssText='padding:10px;margin:8px 0;background:#202027;border-radius:8px';
-  const statusText=r.status==='approved'?'অনুমোদিত':r.status==='rejected'?'রিজেক্ট (রিফান্ড করা হয়েছে)':'অপেক্ষমাণ';
-  const info=document.createElement('div');info.textContent=r.code+' · '+r.username+' · '+r.amount+' virtual coins · '+r.method+' · '+statusText;
-  item.appendChild(info);
-  if(r.status==='pending'){
-   const row=document.createElement('div');row.className='row';
-   const approve=document.createElement('button');approve.className='primary';approve.textContent='Accept';
-   approve.onclick=()=>{r.status='approved';r.reviewedAt=new Date().toISOString();localStorage.setItem('tk777-virtual-withdrawals',JSON.stringify(reqs));loadVirtualWithdrawals();};
-   const reject=document.createElement('button');reject.className='danger';reject.textContent='Reject + Refund';
-   reject.onclick=()=>{
-    let db={};try{db=JSON.parse(localStorage.getItem('tk777-users')||'{}')}catch(e){}
-    if(!db[r.username]){alert('ইউজার অ্যাকাউন্ট পাওয়া যায়নি; রিফান্ড সম্পন্ন হয়নি।');return;}
-    if(r.reserved && !r.refunded){db[r.username].balance=Number(db[r.username].balance||0)+Number(r.amount);r.refunded=true;}
-    r.status='rejected';r.reviewedAt=new Date().toISOString();
-    localStorage.setItem('tk777-users',JSON.stringify(db));localStorage.setItem('tk777-virtual-withdrawals',JSON.stringify(reqs));loadVirtualWithdrawals();
-   };
-   row.append(approve,reject);item.appendChild(row);
-  }
-  box.appendChild(item);
- });
-}
-document.getElementById('refreshVirtualWithdrawals').onclick=loadVirtualWithdrawals;
-loadVirtualWithdrawals();
-function renderCustomGameAdmin(){const box=document.getElementById('adminGameList');let a=[];try{a=JSON.parse(localStorage.getItem('tk777-custom-games')||'[]')}catch(e){}box.innerHTML='';if(!a.length){box.textContent='কোনো কাস্টম গেম নেই।';return;}a.forEach((g,i)=>{const row=document.createElement('div');row.style.cssText='padding:8px;border-bottom:1px solid #444;display:flex;justify-content:space-between;gap:8px';const t=document.createElement('span');t.textContent=g.title+' · '+g.category;const edit=document.createElement('button');edit.textContent='Edit';edit.onclick=()=>{const title=prompt('গেমের নাম',g.title);if(title===null)return;g.title=title.trim()||g.title;g.category=prompt('ক্যাটাগরি',g.category)||g.category;g.icon=prompt('আইকন',g.icon)||g.icon;localStorage.setItem('tk777-custom-games',JSON.stringify(a));renderCustomGameAdmin();};const del=document.createElement('button');del.className='danger';del.textContent='Remove';del.onclick=()=>{if(confirm('গেমটি সরাবেন?')){a.splice(i,1);localStorage.setItem('tk777-custom-games',JSON.stringify(a));renderCustomGameAdmin();}};row.append(t,edit,del);box.append(row);});}
-document.getElementById('addHtmlGame').onclick=()=>{const f=document.getElementById('newGameFile').files[0],title=document.getElementById('newGameTitle').value.trim();if(!f||!title){alert('গেমের নাম ও HTML ফাইল দিন।');return;}if(f.size>2500000){alert('ফাইলটি 2.5MB-এর বেশি; ছোট HTML ফাইল ব্যবহার করুন।');return;}const r=new FileReader();r.onload=()=>{let a=[];try{a=JSON.parse(localStorage.getItem('tk777-custom-games')||'[]')}catch(e){}a.push({id:'g'+Date.now(),title,category:document.getElementById('newGameCategory').value||'Game',icon:document.getElementById('newGameIcon').value||'🎮',html:String(r.result)});try{localStorage.setItem('tk777-custom-games',JSON.stringify(a));renderCustomGameAdmin();alert('গেম যোগ হয়েছে। Home Page রিফ্রেশ করুন।')}catch(e){alert('স্টোরেজ পূর্ণ। ছোট HTML ফাইল দিন।')}};r.readAsText(f);};
-document.getElementById('exportTexts').onclick=()=>{let c={};try{c=JSON.parse(localStorage.getItem('tk777-text-catalog')||'{}')}catch(e){}if(!Object.keys(c).length){document.getElementById('textStatus').textContent='আগে Home Page একবার খুলে রিফ্রেশ করুন, তারপর আবার Load করুন।';return;}let old={};try{old=JSON.parse(localStorage.getItem('tk777-text-overrides')||'{}')}catch(e){}Object.keys(c).forEach(k=>{if(old[k]!==undefined)c[k]=old[k]});document.getElementById('textMap').value=JSON.stringify(c,null,2);document.getElementById('textStatus').textContent=Object.keys(c).length+'টি টেক্সট লোড হয়েছে। প্রয়োজনমতো নতুন লেখা লিখে Save করুন।';};
-document.getElementById('saveTexts').onclick=()=>{try{const v=JSON.parse(document.getElementById('textMap').value||'{}');if(!v||Array.isArray(v)||typeof v!=='object')throw 0;localStorage.setItem('tk777-text-overrides',JSON.stringify(v));document.getElementById('textStatus').textContent='টেক্সট সংরক্ষিত। Home Page রিফ্রেশ করুন।'}catch(e){alert('সঠিক JSON দিন।')}};
-document.getElementById('loadDepositConfig').onclick=()=>{let c={};try{c=JSON.parse(localStorage.getItem('tk777-deposit-config')||'{}')}catch(e){}document.getElementById('depositConfig').value=JSON.stringify(c,null,2);};
-document.getElementById('saveDepositConfig').onclick=()=>{try{const c=JSON.parse(document.getElementById('depositConfig').value||'{}');localStorage.setItem('tk777-deposit-config',JSON.stringify(c));document.getElementById('depositStatus').textContent='Deposit config সংরক্ষিত।'}catch(e){alert('সঠিক JSON দিন।')}};
-renderCustomGameAdmin();
-function loadSiteSettings(){
- let c={};try{c=JSON.parse(localStorage.getItem('tk777-site-settings')||'{}')}catch(e){}
- ['Logo','BannerHeading','BannerSubtitle','HomeNotice','ThemeColor','BannerColor'].forEach(k=>{
-  const id='cfg'+k,prop=k.charAt(0).toLowerCase()+k.slice(1);
-  const el=document.getElementById(id);if(el)el.value=c[prop]||'';
- });
-}
-document.getElementById('saveSiteSettings').onclick=()=>{
- const cfg={logo:document.getElementById('cfgLogo').value,bannerHeading:document.getElementById('cfgBannerHeading').value,bannerSubtitle:document.getElementById('cfgBannerSubtitle').value,homeNotice:document.getElementById('cfgHomeNotice').value,themeColor:document.getElementById('cfgThemeColor').value,bannerColor:document.getElementById('cfgBannerColor').value};
- localStorage.setItem('tk777-site-settings',JSON.stringify(cfg));
- document.getElementById('siteSettingsStatus').textContent='সেটিংস সংরক্ষিত হয়েছে। Home Page রিফ্রেশ করুন।';
-};
-document.getElementById('reloadSiteSettings').onclick=loadSiteSettings;
-loadSiteSettings();
-const status=document.getElementById('status');
-document.getElementById('set').onclick=async()=>{const v=Number(document.getElementById('crash').value);if(!Number.isFinite(v)||v<1.01||v>100){status.textContent='1.01 থেকে 100 এর মধ্যে একটি multiplier দিন।';return}try{await cloud('/api/admin/game',{method:'POST',body:{multiplier:v}});status.textContent='পরবর্তী রাউন্ডের Crash '+v.toFixed(2)+'x Cloud-এ সংরক্ষিত হয়েছে।';await refreshCloudGame()}catch(e){status.textContent=e.message}};
-document.getElementById('random').onclick=async()=>{const v=+(1.1+Math.random()*5.5).toFixed(2);document.getElementById('crash').value=v;try{await cloud('/api/admin/game',{method:'POST',body:{multiplier:v}});status.textContent='র‍্যান্ডম Crash '+v.toFixed(2)+'x সংরক্ষিত হয়েছে।';await refreshCloudGame()}catch(e){status.textContent=e.message}};
-refreshCloudGame();setInterval(refreshCloudGame,1500);if(!adminToken())showAdminLogin();
-document.getElementById('crashNow').onclick=()=>{send({type:'crash-now'});status.textContent='Crash Now কমান্ড পাঠানো হয়েছে।'};
-
-const defaultBonusConfig=[{id:'invite',title:'একজনকে আমন্ত্রণ জানান',description:'প্রতি অ্যাকাউন্টে একবার',amount:20,active:true},{id:'daily',title:'দৈনিক ভার্চুয়াল পুরস্কার',description:'প্রতি অ্যাকাউন্টে একবার',amount:10,active:true},{id:'first',title:'নতুন ইউজার বোনাস',description:'প্রতি অ্যাকাউন্টে একবার',amount:30,active:true}];
-function getBonusConfig(){try{const v=JSON.parse(localStorage.getItem('tk777-bonus-config')||'null');return Array.isArray(v)?v:defaultBonusConfig.slice()}catch(e){return defaultBonusConfig.slice()}}
-function saveBonusConfig(v){localStorage.setItem('tk777-bonus-config',JSON.stringify(v));renderAdminBonuses()}
-function renderAdminBonuses(){const box=document.getElementById('adminBonusList');if(!box)return;const list=getBonusConfig();box.replaceChildren();if(!list.length){box.textContent='কোনো বোনাস নেই।';return;}
- list.forEach((b,i)=>{const row=document.createElement('div');row.style.cssText='padding:9px;border-bottom:1px solid #444;display:flex;gap:8px;align-items:center;justify-content:space-between';const label=document.createElement('span');label.textContent=b.title+' · '+b.amount+' coins';const edit=document.createElement('button');edit.textContent='Edit';edit.onclick=()=>{const title=prompt('বোনাসের নাম',b.title);if(title===null)return;const amount=Number(prompt('বোনাসের পরিমাণ',b.amount));if(!title.trim()||!Number.isInteger(amount)||amount<1){alert('সঠিক নাম ও পরিমাণ দিন।');return;}b.title=title.trim();b.amount=amount;b.description=prompt('বিবরণ',b.description||'')??b.description;saveBonusConfig(list)};const remove=document.createElement('button');remove.className='danger';remove.textContent='Remove';remove.onclick=()=>{if(!confirm('এই বোনাসটি মুছে ফেলবেন?'))return;list.splice(i,1);saveBonusConfig(list)};row.append(label,edit,remove);box.appendChild(row);});
-}
-document.getElementById('addBonus')?.addEventListener('click',()=>{const title=document.getElementById('bonusTitle').value.trim(),amount=Number(document.getElementById('bonusAmount').value),description=document.getElementById('bonusDescription').value.trim();if(!title||!Number.isInteger(amount)||amount<1){alert('বোনাসের নাম ও সঠিক পরিমাণ দিন।');return;}const list=getBonusConfig();list.push({id:'bonus_'+Date.now(),title,amount,description,active:true});saveBonusConfig(list);document.getElementById('bonusTitle').value='';document.getElementById('bonusAmount').value='';document.getElementById('bonusDescription').value='';});
-renderAdminBonuses();
-</script><script>
-(()=>{
- const $=id=>document.getElementById(id);
- async function refreshDashboard(){try{const d=await cloud('/api/admin/dashboard'),s=d.stats;$('cloudStats').textContent='Users: '+s.users+' · Transactions: '+s.transactions+' · Pending: '+s.pending+' · Total virtual coins: '+Number(s.balance).toLocaleString()}catch(e){$('cloudStats').textContent=e.message}}
- async function refreshUsers(){const box=$('cloudUsers');try{const d=await cloud('/api/admin/users'),rows=d.users||[];box.replaceChildren();if(!rows.length){box.textContent='কোনো ইউজার নেই।';return}rows.forEach(u=>{const row=document.createElement('div');row.style.cssText='padding:10px 0;border-bottom:1px solid #444';const label=document.createElement('div');label.textContent='#'+u.id+' · '+u.username+' · বর্তমান '+Number(u.balance).toFixed(2)+' coins';const input=document.createElement('input');input.type='number';input.min='0';input.step='.01';input.value=Number(u.balance).toFixed(2);input.style.marginTop='8px';const btn=document.createElement('button');btn.className='primary';btn.textContent='ব্যালেন্স সেট করুন';btn.style.marginTop='8px';btn.onclick=async()=>{btn.disabled=true;try{await cloud('/api/admin/balance',{method:'POST',body:{user_id:u.id,amount:Number(input.value)}});await refreshUsers();await refreshDashboard()}catch(e){alert(e.message);btn.disabled=false}};row.append(label,input,btn);box.append(row)})}catch(e){box.textContent=e.message}}
- async function refreshTransactions(){const box=$('cloudTransactions');try{const d=await cloud('/api/admin/transactions'),rows=d.transactions||[];box.replaceChildren();if(!rows.length){box.textContent='কোনো রিকোয়েস্ট নেই।';return}rows.forEach(tx=>{const row=document.createElement('div');row.style.cssText='padding:10px 0;border-bottom:1px solid #444';const info=document.createElement('div');info.textContent='#'+tx.id+' · User #'+tx.user_id+' · '+tx.type+' · '+Number(tx.amount).toFixed(2)+' coins · '+tx.status;row.append(info);if(tx.status==='pending'){const actions=document.createElement('div');actions.className='row';['approved','rejected'].forEach(status=>{const b=document.createElement('button');b.className=status==='approved'?'primary':'danger';b.textContent=status==='approved'?'Approve':'Reject';b.onclick=async()=>{b.disabled=true;try{await cloud('/api/admin/transactions/update',{method:'POST',body:{id:tx.id,status}});await refreshTransactions();await refreshDashboard();await refreshUsers()}catch(e){alert(e.message);b.disabled=false}};actions.append(b)});row.append(actions)}box.append(row)})}catch(e){box.textContent=e.message}}
- async function refreshAll(){await Promise.all([refreshDashboard(),refreshUsers(),refreshTransactions(),refreshCloudGame()])}
- $('set').onclick=async()=>{const v=Number($('crash').value),status=$('status');if(!Number.isFinite(v)||v<1.01||v>100){status.textContent='1.01 থেকে 100 এর মধ্যে একটি multiplier দিন।';return}try{await cloud('/api/admin/game',{method:'POST',body:{multiplier:v}});status.textContent='পরবর্তী রাউন্ডের Crash '+v.toFixed(2)+'x সার্ভারে সংরক্ষিত হয়েছে।';await refreshCloudGame()}catch(e){status.textContent=e.message}};
- $('random').onclick=async()=>{const v=+(1.1+Math.random()*5.5).toFixed(2);$('crash').value=v;try{await cloud('/api/admin/game',{method:'POST',body:{multiplier:v}});$('status').textContent='র‍্যান্ডম Crash '+v.toFixed(2)+'x সার্ভারে সংরক্ষিত হয়েছে।';await refreshCloudGame()}catch(e){$('status').textContent=e.message}};
- $('refreshCloud').onclick=refreshAll;$('refreshCloudTransactions').onclick=refreshTransactions;$('refreshCoinRequests').onclick=refreshTransactions;$('refreshVirtualWithdrawals').onclick=refreshTransactions;
- $('crashNow').disabled=true;$('crashNow').title='এই সংস্করণে server-side crash-now action বন্ধ রাখা হয়েছে';
- if(adminToken())refreshAll();setInterval(()=>{if(adminToken()){refreshCloudGame();refreshDashboard()}},2000);setInterval(()=>{if(adminToken()){refreshUsers();refreshTransactions()}},7000);
+(()=>{'use strict';
+const API='https://tk777-api.dhmatelecom.workers.dev',KEY='tk777-admin-token';let users=[],transactions=[];
+const $=id=>document.getElementById(id),token=()=>sessionStorage.getItem(KEY);
+async function api(path,opts={}){const r=await fetch(API+path,{method:opts.method||'GET',headers:{'Content-Type':'application/json',...(token()?{Authorization:'Bearer '+token()}:{})},...(opts.body?{body:JSON.stringify(opts.body)}:{})});const d=await r.json().catch(()=>({}));if(!r.ok||d.success===false)throw Error(d.message||('HTTP '+r.status));return d}
+function msg(id,s){$(id).textContent=s||''}function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function money(v){return Number(v||0).toLocaleString('en-US',{maximumFractionDigits:2})}
+async function login(){msg('loginMsg','লগইন হচ্ছে…');$('loginBtn').disabled=true;try{const r=await fetch(API+'/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:$('username').value.trim(),password:$('password').value})});const d=await r.json();if(!r.ok||!d.success)throw Error(d.message||'Login failed');sessionStorage.setItem(KEY,d.token);$('loginView').classList.add('hidden');$('appView').classList.remove('hidden');await loadAll()}catch(e){msg('loginMsg',e.message)}finally{$('loginBtn').disabled=false}}
+async function loadAll(){try{const [d,u,t]=await Promise.all([api('/api/admin/dashboard'),api('/api/admin/users'),api('/api/admin/transactions')]);users=u.users||[];transactions=t.transactions||[];$('statUsers').textContent=d.stats.users;$('statTx').textContent=d.stats.transactions;$('statPending').textContent=d.stats.pending;$('statBalance').textContent=money(d.stats.balance);renderUsers();renderRequests();renderHistory()}catch(e){if(/unauthorized/i.test(e.message)){sessionStorage.removeItem(KEY);$('appView').classList.add('hidden');$('loginView').classList.remove('hidden')}throw e}}
+function renderUsers(){const q=$('userSearch').value.trim().toLowerCase(),list=users.filter(u=>String(u.username).toLowerCase().includes(q)||String(u.id).includes(q));$('usersBody').innerHTML=list.length?list.map(u=>`<tr><td>${u.id}</td><td>${esc(u.username)}</td><td>${money(u.balance)}</td><td>${Number(u.is_blocked)?'<span class="bad">Blocked</span>':'<span class="ok">Active</span>'}</td><td><div class="actions"><button class="gold" data-balance="${u.id}">Balance</button><button class="${Number(u.is_blocked)?'primary':'danger'}" data-block="${u.id}" data-state="${Number(u.is_blocked)?0:1}">${Number(u.is_blocked)?'Unblock':'Block'}</button></div></td></tr>`).join(''):'<tr><td colspan="5">কোনো User পাওয়া যায়নি</td></tr>'}
+function statusText(s){return s==='approved'?'Approved':s==='rejected'?'Rejected':'Pending'}
+function renderRequests(){const list=transactions.filter(t=>t.status==='pending');$('requestsBody').innerHTML=list.length?list.map(t=>`<tr><td>${t.id}</td><td>${t.user_id}</td><td>${t.type==='deposit'?'Deposit':'Withdraw'}</td><td>${money(t.amount)}</td><td class="pending">Pending</td><td>${esc(t.created_at)}</td><td><div class="actions"><button class="primary" data-review="${t.id}" data-status="approved">Approve</button><button class="danger" data-review="${t.id}" data-status="rejected">Reject</button></div></td></tr>`).join(''):'<tr><td colspan="7">কোনো Pending Request নেই</td></tr>'}
+function renderHistory(){$('historyBody').innerHTML=transactions.length?transactions.map(t=>`<tr><td>${t.id}</td><td>${t.user_id}</td><td>${t.type}</td><td>${money(t.amount)}</td><td>${statusText(t.status)}</td><td>${esc(t.created_at)}</td></tr>`).join(''):'<tr><td colspan="6">কোনো Transaction নেই</td></tr>'}
+async function balance(id){const u=users.find(x=>x.id===id);const v=prompt(`User: ${u?.username||id}\nনতুন সম্পূর্ণ Balance লিখুন:`,String(u?.balance??0));if(v===null)return;const amount=Number(v);if(!Number.isFinite(amount)||amount<0){alert('সঠিক Balance লিখুন');return}if(!confirm(`${u?.username||id}-এর Balance ${money(amount)} সেট করবেন?`))return;try{await api('/api/admin/balance',{method:'POST',body:{user_id:id,amount}});msg('userMsg','Balance সফলভাবে আপডেট হয়েছে।');await loadAll()}catch(e){msg('userMsg',e.message)}}
+async function block(id,state){const u=users.find(x=>x.id===id);if(!confirm(`${u?.username||id} অ্যাকাউন্ট ${state?'Block':'Unblock'} করবেন?`))return;try{await api('/api/admin/users/status',{method:'POST',body:{user_id:id,is_blocked:state}});msg('userMsg',state?'ইউজার Block করা হয়েছে।':'ইউজার Unblock করা হয়েছে।');await loadAll()}catch(e){msg('userMsg',e.message)}}
+async function review(id,status){const t=transactions.find(x=>x.id===id);if(!confirm(`Request #${id} ${status==='approved'?'Approve':'Reject'} করবেন?`))return;try{await api('/api/admin/transactions/update',{method:'POST',body:{id,status}});msg('requestMsg','Request আপডেট হয়েছে।');await loadAll()}catch(e){msg('requestMsg',e.message)}}
+$('loginBtn').onclick=login;$('password').addEventListener('keydown',e=>{if(e.key==='Enter')login()});$('refreshBtn').onclick=()=>loadAll().catch(e=>alert(e.message));$('logoutBtn').onclick=async()=>{try{await api('/api/admin/logout',{method:'POST'})}catch{}sessionStorage.removeItem(KEY);location.reload()};$('userSearch').oninput=renderUsers;
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.balance)balance(Number(b.dataset.balance));if(b.dataset.block)block(Number(b.dataset.block),Number(b.dataset.state));if(b.dataset.review)review(Number(b.dataset.review),b.dataset.status)});
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));['users','requests','history'].forEach(k=>$(k+'Tab').classList.toggle('hidden',b.dataset.tab!==k))});
+(async()=>{if(token()){try{await api('/api/admin/me');$('loginView').classList.add('hidden');$('appView').classList.remove('hidden');await loadAll()}catch(e){sessionStorage.removeItem(KEY)}}})();
 })();
-</script>
-
-</body></html>
+</script></body></html>

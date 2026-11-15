@@ -61,14 +61,14 @@ main{padding:10px}.balancebar{display:flex;align-items:center;justify-content:sp
 .modal-backdrop.open{display:flex}.modal-box{width:min(360px,100%);background:#17140e;border:1px solid #b88727;border-radius:12px;padding:20px;text-align:center;box-shadow:0 15px 45px #000}.modal-box p{color:#f4d98e;font-size:16px;line-height:1.6;margin:5px 0 18px}.modal-box button{min-width:110px;padding:10px 22px;border:0;border-radius:22px;background:linear-gradient(#f8dc83,#bd8522);font-weight:bold;color:#211707}
 @media(max-width:380px){.reward-row{grid-template-columns:88px 1fr 62px}.reward-art{font-size:10px}}
 </style></head><body>
-<div id="auth" class="auth"><div class="authbox"><div class="authlogo">👑 TK777</div><h2 id="authTitle">Login</h2><div class="switch"><button type="button" id="loginTab" class="active">Login</button><button type="button" id="regTab">Register</button></div><input id="username" placeholder="Username" autocomplete="username"><input id="password" type="password" placeholder="Password" autocomplete="current-password"><button type="button" class="goldbtn" id="authSubmit">Login</button><p id="authMsg" class="note"></p><p class="note">অ্যাকাউন্ট ও ভার্চুয়াল ব্যালেন্স নিরাপদ সার্ভারে সংরক্ষিত হয়। নতুন অ্যাকাউন্টের ব্যালেন্স 00.00।</p></div></div>
+<div id="auth" class="auth"><div class="authbox"><div class="authlogo">👑 TK777</div><h2 id="authTitle">Login</h2><div class="switch"><button type="button" id="loginTab" class="active">Login</button><button type="button" id="regTab">Register</button></div><input id="username" placeholder="Username" autocomplete="username"><input id="password" type="password" placeholder="Password" autocomplete="current-password"><button type="button" class="goldbtn" id="authSubmit">Login</button><p id="authMsg" class="note"></p><p class="note">অ্যাকাউন্ট তথ্য এই ডিভাইসের ব্রাউজারে সংরক্ষিত হয়। নতুন অ্যাকাউন্টের ব্যালেন্স 00.00।</p></div></div>
 <div id="site" class="app" style="display:none">
 <header class="top"><div class="brand" id="siteBrand">👑 TK777</div><div class="topright"><span id="headBalance">৳ 00.00</span><button class="roundbtn" title="Balance refresh" onclick="refreshBalance()" style="background:transparent;border:0;color:#e8bd54;padding:4px;font-size:18px">↻</button><button class="roundbtn" onclick="showPage('account')">☻</button></div></header>
 <main>
 <section id="home" class="page active">
 <div class="balancebar"><div>Wallet balance<br><b id="homeBalance">৳ 00.00</b></div><div class="actions"><button onclick="refreshBalance()" title="Balance refresh">↻</button><button onclick="showPage('deposit')">Deposit</button><button onclick="showPage('withdraw')">Withdraw</button></div></div>
 <div class="banner"><div class="bannertext"><small>WELCOME TO</small><strong id="bannerHeading">জ্যাকপট জিতুন</strong><span id="bannerSubtitle">TK777 • GAMES • ENTERTAINMENT</span></div></div>
-<div class="sectionhead"><b>🏆 Win List</b><a>More ›</a></div><div class="wins"><div class="win"><strong>TOP PLAYER</strong>Player</div><div class="win"><strong>WIN COINS</strong>00.00</div><div class="win"><strong>YOUR WIN</strong>00.00</div></div>
+<div class="sectionhead"><b>🏆 Win List</b><a>More ›</a></div><div class="wins"><div class="win"><strong>TOP PLAYER</strong>Demo User</div><div class="win"><strong>WIN COINS</strong>00.00</div><div class="win"><strong>YOUR WIN</strong>00.00</div></div>
 <div class="notice" id="homeNotice">🎁 Welcome to TK777 — এখানে সব ব্যালেন্স ভার্চুয়াল এবং শুরুতে 00.00।</div>
 <div class="sectionhead"><b>🎮 Game Categories</b><a>All Games ›</a></div>
 <div class="tiles">
@@ -428,108 +428,4 @@ render();
   <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;color:#e8bd54"><b id="customGameTitle">Game</b><button onclick="closeCustomGame()" style="padding:8px 12px">✕ Close</button></div>
   <iframe id="customGameFrame" title="Custom game" sandbox="allow-scripts allow-forms allow-pointer-lock" style="border:0;flex:1;width:100%;background:white"></iframe>
  </div></div>
-
-
-
-
-<script>
-/* TK777 cloud-first user bridge. Original page markup/styles are retained. */
-(()=>{
- const API=window.TK777API, $=id=>document.getElementById(id), KEY='tk777-api-user-token';
- const call=(p,o)=>API.request(p,o);
- let cloudUser=null, busy=false;
- function message(s){$('authMsg').textContent=s||''}
- function setToken(t){if(t)localStorage.setItem(KEY,t);else localStorage.removeItem(KEY)}
- function paint(u){cloudUser=u;current=u?.username||'';window.current=current;if(current)localStorage.setItem('tk777-current',current);else localStorage.removeItem('tk777-current');$('auth').style.display=u?'none':'block';$('site').style.display=u?'block':'none';if(!u)return;
-  const b=Number(u.balance||0).toFixed(2);['headBalance','homeBalance','profileBalance','bonusBalance','withdrawBalance','withdrawAvailable'].forEach(id=>{if($(id))$(id).textContent=(id==='withdrawAvailable'?b:'৳ '+b)});
-  ['profileUser','bonusUser'].forEach(id=>{if($(id))$(id).textContent=u.username});
- }
- async function refresh(){if(busy)return;try{const d=await call('/api/user/me');paint(d.user);return d.user}catch(e){if(/unauthorized/i.test(e.message)){setToken(null);localStorage.removeItem('tk777-current');paint(null)}else console.warn(e);return null}}
- // Replace the old LocalStorage-only auth click listener without changing its appearance.
- const old=$('authSubmit'), fresh=old.cloneNode(true);old.replaceWith(fresh);
- fresh.addEventListener('click',async()=>{
-  const username=$('username').value.trim(),password=$('password').value;
-  if(!/^[A-Za-z0-9_]{3,20}$/.test(username)){message('Username 3-20 অক্ষরের হতে হবে।');return}
-  if(password.length<6){message('Password কমপক্ষে ৬ অক্ষরের দিন।');return}
-  fresh.disabled=true;message('অপেক্ষা করুন…');
-  try{const d=await call(mode==='register'?'/api/register':'/api/login',{method:'POST',body:{username,password}});
-   if(mode==='register'){message('রেজিস্ট্রেশন সফল। এখন Login করুন।');setMode('login');$('username').value=username;$('password').value='';return}
-   setToken(d.token);await refresh();message('');
-  }catch(e){message(e.message)}finally{fresh.disabled=false}
- });
- window.refreshBalance=async()=>{const u=await refresh();const b=Number(u?.balance||0).toFixed(2);['headBalance','homeBalance','profileBalance'].forEach(id=>{if($(id))$(id).textContent='৳ '+b})};
- window.refreshBalances=window.refreshBalance;
- window.render=()=>{refresh()};
- window.logout=async()=>{try{await call('/api/logout',{method:'POST'})}catch(e){}setToken(null);localStorage.removeItem('tk777-current');paint(null)};
- window.createCoinRequest=async()=>{const amount=Number($('coinAmount').value);if(!Number.isInteger(amount)||amount<1||amount>100000){alert('১ থেকে ১০০,০০০ ভার্চুয়াল কয়েন দিন।');return}
-  try{const d=await call('/api/user/request',{method:'POST',body:{type:'deposit',amount}});const box=$('requestResult');box.style.display='block';box.textContent='Virtual deposit request তৈরি হয়েছে। Request ID: '+d.id+' · '+amount+' coins · Pending';$('coinAmount').value='';}catch(e){alert(e.message)} };
- window.submitVirtualWithdrawal=async()=>{const amount=Number($('withdrawAmount').value),pin=$('withdrawPin').value;if(!Number.isInteger(amount)||amount<1){alert('সঠিক ভার্চুয়াল কয়েনের পরিমাণ দিন।');return}if(!/^\d{4,8}$/.test(pin)){alert('৪-৮ সংখ্যার Transaction PIN দিন।');return}
-  try{const d=await call('/api/user/request',{method:'POST',body:{type:'withdraw',amount}});$('withdrawResult').style.display='block';$('withdrawResult').textContent='Virtual withdrawal request তৈরি হয়েছে: #'+d.id+' · '+amount+' coins · Pending';$('withdrawAmount').value='';$('withdrawPin').value='';await refresh()}catch(e){alert(e.message)} };
- window.renderHistory=async(type)=>{const target=$(type==='deposit'?'depositHistoryList':'withdrawHistoryList');if(!target)return;target.replaceChildren();try{const d=await call('/api/user/transactions');const rows=(d.transactions||[]).filter(x=>x.type===type);if(!rows.length){target.textContent='এখনো কোনো রিকোয়েস্ট নেই।';return}rows.forEach(x=>{const c=document.createElement('div');c.className='history-item';c.textContent=type.toUpperCase()+' · '+Number(x.amount).toLocaleString()+' Virtual Coins · '+x.status+' · '+(x.created_at||'');target.append(c)})}catch(e){target.textContent=e.message}};
- window.renderBetHistoryPage=async()=>{const list=$('betHistoryList'),summary=$('betHistorySummary');if(!list)return;list.replaceChildren();try{const d=await call('/api/game/bets'),rows=d.bets||[];summary.textContent='সার্ভার থেকে পাওয়া মোট বেট: '+rows.length;if(!rows.length){list.textContent='এখনো কোনো বেট হিস্টরি নেই।';return}rows.forEach(x=>{const c=document.createElement('div');c.className='history-item';c.textContent='Round '+x.round+' · '+x.state+' · '+Number(x.stake).toFixed(2)+' coins · '+(x.cashout_multiplier?Number(x.cashout_multiplier).toFixed(2)+'x':'')+' · Payout '+Number(x.payout||0).toFixed(2);list.append(c)})}catch(e){list.textContent=e.message}};
- // Disable old local-only balance-changing bonus code; the server remains authoritative.
- window.claimBonus=()=>alert('Bonus claim এখন সার্ভার-সাইডে সংযুক্ত হয়নি। অ্যাডমিন অনুমোদিত কয়েন ছাড়া ব্যালেন্স বদলাবে না।');
- window.saveVirtualWallet=()=>{const label=$('walletAlias').value.trim();if(label.length<2||label.length>40){alert('২-৪০ অক্ষরের display name দিন।');return}localStorage.setItem('tk777-wallet-label-'+(cloudUser?.username||''),JSON.stringify({group:walletGroup,label}));$('walletMessage').style.display='block';$('walletMessage').textContent='এই ডিভাইসে Virtual Wallet label সংরক্ষিত হয়েছে; কোনো বাস্তব ওয়ালেট যুক্ত হয়নি।'};
- window.loadWalletLabel=()=>{try{const w=JSON.parse(localStorage.getItem('tk777-wallet-label-'+(cloudUser?.username||''))||'null');if(w){walletGroup=w.group;$('walletAlias').value=w.label;$('walletTypeLabel').textContent=w.group}}catch(e){}};
- window.savePersonalInfo=()=>{alert('Display name পরিবর্তন API-তে এখনো যুক্ত হয়নি।')};
- window.changeLoginPassword=()=>alert('Password পরিবর্তনের সার্ভার API এখনো যুক্ত হয়নি।');
- window.setTransactionPin=()=>alert('Transaction PIN সার্ভারে সংরক্ষণের ব্যবস্থা এখনো যুক্ত হয়নি।');
- window.saveSecurityQuestion=()=>alert('Security question সার্ভারে সংরক্ষণের ব্যবস্থা এখনো যুক্ত হয়নি।');
- window.loadSecurityFields=()=>{const local=localStorage.getItem('tk777-display-'+(cloudUser?.username||''))||'';if($('displayName'))$('displayName').value=local;if($('securityLevel'))$('securityLevel').textContent='Cloud login'};
- const originalShowPage=window.showPage;window.showPage=(id)=>{originalShowPage(id);refresh().then(u=>{if(u&&id==='bonus'){$('bonusUser').textContent=u.username;$('bonusBalance').textContent='৳ '+Number(u.balance||0).toFixed(2)}})};
- // Always trust the server balance; refresh on tab focus and periodically.
- refresh();setInterval(refresh,5000);window.addEventListener('focus',refresh);
-})();
-</script>
-
-<script>
-/* TK777 cloud-first user bridge. Original page markup/styles are retained. */
-(()=>{
- const API=window.TK777API, $=id=>document.getElementById(id), KEY='tk777-api-user-token';
- const call=(p,o)=>API.request(p,o);
- let cloudUser=null, busy=false;
- function message(s){$('authMsg').textContent=s||''}
- function setToken(t){if(t)localStorage.setItem(KEY,t);else localStorage.removeItem(KEY)}
- function paint(u){cloudUser=u;current=u?.username||'';window.current=current;if(current)localStorage.setItem('tk777-current',current);else localStorage.removeItem('tk777-current');$('auth').style.display=u?'none':'block';$('site').style.display=u?'block':'none';if(!u)return;
-  const b=Number(u.balance||0).toFixed(2);['headBalance','homeBalance','profileBalance','bonusBalance','withdrawBalance','withdrawAvailable'].forEach(id=>{if($(id))$(id).textContent=(id==='withdrawAvailable'?b:'৳ '+b)});
-  ['profileUser','bonusUser'].forEach(id=>{if($(id))$(id).textContent=u.username});
- }
- async function refresh(){if(busy)return;try{const d=await call('/api/user/me');paint(d.user);return d.user}catch(e){if(/unauthorized/i.test(e.message)){setToken(null);localStorage.removeItem('tk777-current');paint(null)}else console.warn(e);return null}}
- // Replace the old LocalStorage-only auth click listener without changing its appearance.
- const old=$('authSubmit'), fresh=old.cloneNode(true);old.replaceWith(fresh);
- fresh.addEventListener('click',async()=>{
-  const username=$('username').value.trim(),password=$('password').value;
-  if(!/^[A-Za-z0-9_]{3,20}$/.test(username)){message('Username 3-20 অক্ষরের হতে হবে।');return}
-  if(password.length<6){message('Password কমপক্ষে ৬ অক্ষরের দিন।');return}
-  fresh.disabled=true;message('অপেক্ষা করুন…');
-  try{const d=await call(mode==='register'?'/api/register':'/api/login',{method:'POST',body:{username,password}});
-   if(mode==='register'){setMode('login');message('রেজিস্ট্রেশন সফল। এখন Login করুন।');$('username').value=username;$('password').value='';return}
-   setToken(d.token);await refresh();message('');
-  }catch(e){message(e.message)}finally{fresh.disabled=false}
- });
- window.refreshBalance=async()=>{const u=await refresh();const b=Number(u?.balance||0).toFixed(2);['headBalance','homeBalance','profileBalance'].forEach(id=>{if($(id))$(id).textContent='৳ '+b})};
- window.refreshBalances=window.refreshBalance;
- window.render=()=>{refresh()};
- window.logout=async()=>{try{await call('/api/logout',{method:'POST'})}catch(e){}setToken(null);localStorage.removeItem('tk777-current');paint(null)};
- window.createCoinRequest=async()=>{const amount=Number($('coinAmount').value);if(!Number.isInteger(amount)||amount<1||amount>100000){alert('১ থেকে ১০০,০০০ ভার্চুয়াল কয়েন দিন।');return}
-  try{const d=await call('/api/user/request',{method:'POST',body:{type:'deposit',amount}});const box=$('requestResult');box.style.display='block';box.textContent='Virtual deposit request তৈরি হয়েছে। Request ID: '+d.id+' · '+amount+' coins · Pending';$('coinAmount').value='';}catch(e){alert(e.message)} };
- window.submitVirtualWithdrawal=async()=>{const amount=Number($('withdrawAmount').value),pin=$('withdrawPin').value;if(!Number.isInteger(amount)||amount<1){alert('সঠিক ভার্চুয়াল কয়েনের পরিমাণ দিন।');return}if(!/^\d{4,8}$/.test(pin)){alert('৪-৮ সংখ্যার Transaction PIN দিন।');return}
-  try{const d=await call('/api/user/request',{method:'POST',body:{type:'withdraw',amount}});$('withdrawResult').style.display='block';$('withdrawResult').textContent='Virtual withdrawal request তৈরি হয়েছে: #'+d.id+' · '+amount+' coins · Pending';$('withdrawAmount').value='';$('withdrawPin').value='';await refresh()}catch(e){alert(e.message)} };
- window.renderHistory=async(type)=>{const target=$(type==='deposit'?'depositHistoryList':'withdrawHistoryList');if(!target)return;target.replaceChildren();try{const d=await call('/api/user/transactions');const rows=(d.transactions||[]).filter(x=>x.type===type);if(!rows.length){target.textContent='এখনো কোনো রিকোয়েস্ট নেই।';return}rows.forEach(x=>{const c=document.createElement('div');c.className='history-item';c.textContent=type.toUpperCase()+' · '+Number(x.amount).toLocaleString()+' Virtual Coins · '+x.status+' · '+(x.created_at||'');target.append(c)})}catch(e){target.textContent=e.message}};
- window.renderBetHistoryPage=async()=>{const list=$('betHistoryList'),summary=$('betHistorySummary');if(!list)return;list.replaceChildren();try{const d=await call('/api/game/bets'),rows=d.bets||[];summary.textContent='সার্ভার থেকে পাওয়া মোট বেট: '+rows.length;if(!rows.length){list.textContent='এখনো কোনো বেট হিস্টরি নেই।';return}rows.forEach(x=>{const c=document.createElement('div');c.className='history-item';c.textContent='Round '+x.round+' · '+x.state+' · '+Number(x.stake).toFixed(2)+' coins · '+(x.cashout_multiplier?Number(x.cashout_multiplier).toFixed(2)+'x':'')+' · Payout '+Number(x.payout||0).toFixed(2);list.append(c)})}catch(e){list.textContent=e.message}};
- // Disable old local-only balance-changing bonus code; the server remains authoritative.
- window.claimBonus=()=>alert('Bonus claim এখন সার্ভার-সাইডে সংযুক্ত হয়নি। অ্যাডমিন অনুমোদিত কয়েন ছাড়া ব্যালেন্স বদলাবে না।');
- window.saveVirtualWallet=()=>{const label=$('walletAlias').value.trim();if(label.length<2||label.length>40){alert('২-৪০ অক্ষরের display name দিন।');return}localStorage.setItem('tk777-wallet-label-'+(cloudUser?.username||''),JSON.stringify({group:walletGroup,label}));$('walletMessage').style.display='block';$('walletMessage').textContent='এই ডিভাইসে Virtual Wallet label সংরক্ষিত হয়েছে; কোনো বাস্তব ওয়ালেট যুক্ত হয়নি।'};
- window.loadWalletLabel=()=>{try{const w=JSON.parse(localStorage.getItem('tk777-wallet-label-'+(cloudUser?.username||''))||'null');if(w){walletGroup=w.group;$('walletAlias').value=w.label;$('walletTypeLabel').textContent=w.group}}catch(e){}};
- window.savePersonalInfo=()=>{alert('Display name পরিবর্তন API-তে এখনো যুক্ত হয়নি।')};
- window.changeLoginPassword=()=>alert('Password পরিবর্তনের সার্ভার API এখনো যুক্ত হয়নি।');
- window.setTransactionPin=()=>alert('Transaction PIN সার্ভারে সংরক্ষণের ব্যবস্থা এখনো যুক্ত হয়নি।');
- window.saveSecurityQuestion=()=>alert('Security question সার্ভারে সংরক্ষণের ব্যবস্থা এখনো যুক্ত হয়নি।');
- window.loadSecurityFields=()=>{const local=localStorage.getItem('tk777-display-'+(cloudUser?.username||''))||'';if($('displayName'))$('displayName').value=local;if($('securityLevel'))$('securityLevel').textContent='Cloud login'};
- const originalShowPage=window.showPage;window.showPage=(id)=>{originalShowPage(id);refresh().then(u=>{if(u&&id==='bonus'){$('bonusUser').textContent=u.username;$('bonusBalance').textContent='৳ '+Number(u.balance||0).toFixed(2)}})};
- // Always trust the server balance; refresh on tab focus and periodically.
- refresh();setInterval(refresh,5000);window.addEventListener('focus',refresh);
-})();
-</script>
-
 </body></html>
