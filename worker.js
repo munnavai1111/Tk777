@@ -147,6 +147,49 @@ const uid = () => crypto.randomUUID();
 const rand = () => crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296;
 const enc = new TextEncoder();
 
+/* COMPATIBILITY LAYER: preserve the legacy integer user IDs and old records. */
+async function ensureLegacyCompatibleSchema(env) {
+  const info = await env.DB.prepare("PRAGMA table_info(users)").all();
+  const columns = new Set((info.results || []).map(row => row.name));
+  const additions = [
+    ["email", "TEXT"],
+    ["password_hash", "TEXT"],
+    ["password_salt", "TEXT"],
+    ["role", "TEXT NOT NULL DEFAULT 'user'"]
+  ];
+  for (const [name, definition] of additions) {
+    if (!columns.has(name)) {
+      await env.DB.prepare("ALTER TABLE users ADD COLUMN " + name + " " + definition).run();
+    }
+  }
+  await env.DB.prepare("UPDATE users SET email=username WHERE email IS NULL OR email=''").run();
+  await env.DB.prepare("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email)").run();
+
+  await env.DB.batch([
+    env.DB.prepare("CREATE TABLE IF NOT EXISTS sessions (token_hash TEXT PRIMARY KEY,user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,expires_at INTEGER NOT NULL,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)"),
+    env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id)"),
+    env.DB.prepare("CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY,value TEXT NOT NULL)"),
+    env.DB.prepare("CREATE TABLE IF NOT EXISTS categories (id TEXT PRIMARY KEY,name TEXT NOT NULL,image_url TEXT NOT NULL DEFAULT '',sort_order INTEGER NOT NULL DEFAULT 0,active INTEGER NOT NULL DEFAULT 1)"),
+    env.DB.prepare("CREATE TABLE IF NOT EXISTS games (id TEXT PRIMARY KEY,name TEXT NOT NULL,category_id TEXT,image_url TEXT NOT NULL DEFAULT '',game_type TEXT NOT NULL DEFAULT 'aviator',html_content TEXT NOT NULL DEFAULT '',active INTEGER NOT NULL DEFAULT 1,sort_order INTEGER NOT NULL DEFAULT 0,FOREIGN KEY(category_id) REFERENCES categories(id) ON DELETE SET NULL)"),
+    env.DB.prepare("CREATE TABLE IF NOT EXISTS game_rounds (id TEXT PRIMARY KEY,user_id INTEGER NOT NULL REFERENCES users(id),game_id TEXT NOT NULL,game_type TEXT NOT NULL,bet_amount INTEGER NOT NULL,multiplier REAL NOT NULL,payout INTEGER NOT NULL,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)"),
+    env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_rounds_user_created ON game_rounds(user_id,created_at)"),
+    env.DB.prepare("CREATE TABLE IF NOT EXISTS crash_sessions (id TEXT PRIMARY KEY,game_id TEXT NOT NULL,crash_multiplier REAL NOT NULL,start_ms INTEGER NOT NULL,status TEXT NOT NULL DEFAULT 'active',created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)"),
+    env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_crash_sessions_game_status ON crash_sessions(game_id,status)"),
+    env.DB.prepare("CREATE TABLE IF NOT EXISTS crash_rounds (id TEXT PRIMARY KEY,user_id INTEGER NOT NULL REFERENCES users(id),game_id TEXT NOT NULL,session_id TEXT NOT NULL,bet_amount INTEGER NOT NULL,crash_multiplier REAL NOT NULL,start_ms INTEGER NOT NULL,status TEXT NOT NULL DEFAULT 'active',cashout_multiplier REAL NOT NULL DEFAULT 0,payout INTEGER NOT NULL DEFAULT 0,settled INTEGER NOT NULL DEFAULT 0,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)"),
+    env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_crash_user_status ON crash_rounds(user_id,status)"),
+    env.DB.prepare("CREATE TABLE IF NOT EXISTS tk_transactions (id TEXT PRIMARY KEY,user_id INTEGER NOT NULL REFERENCES users(id),type TEXT NOT NULL,amount REAL NOT NULL,balance_after REAL NOT NULL DEFAULT 0,note TEXT NOT NULL DEFAULT '',status TEXT NOT NULL DEFAULT 'completed',created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)"),
+    env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_tk_transactions_user_created ON tk_transactions(user_id,created_at)")
+  ]);
+
+  await env.DB.prepare("INSERT OR IGNORE INTO categories(id,name,image_url,sort_order) VALUES('hot','Hot Games','',1),('favorites','Favorites','',2),('slots','Slots','',3),('live','Live','',4),('sports','Sports','',5),('esports','E-sports','',6),('poker','Poker','',7),('fish','Fish','',8),('lottery','Lottery','',9),('mission','Mission','',10),('vip','VIP','',11),('promotion','Promotion','',12)").run();
+  await env.DB.prepare("INSERT OR IGNORE INTO games(id,name,category_id,image_url,game_type,sort_order) VALUES('aviator','Aviator','hot','','aviator',1),('super-ace','Super Ace','slots','','superace',2)").run();
+  await env.DB.prepare("INSERT OR IGNORE INTO settings(key,value) VALUES('site_name','TK777'),('maintenance','false')").run();
+
+  // Copy the old transaction history once; keep the original table untouched.
+  await env.DB.prepare("INSERT OR IGNORE INTO tk_transactions(id,user_id,type,amount,balance_after,note,status,created_at) SELECT CAST(t.id AS TEXT),t.user_id,t.type,t.amount,COALESCE(u.balance,0),'Imported legacy transaction',COALESCE(t.status,'completed'),t.created_at FROM tk_transactions t LEFT JOIN users u ON u.id=t.user_id").run();
+}
+
+
 /* INTERNAL MESSAGES */
 async function ensureInternalMessageSchema(env){await env.DB.prepare("CREATE TABLE IF NOT EXISTS internal_messages (id TEXT PRIMARY KEY,user_id TEXT NOT NULL,title TEXT NOT NULL,body TEXT NOT NULL,type TEXT NOT NULL DEFAULT 'info',source_key TEXT UNIQUE,read_at TEXT,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)").run();}
 async function createInternalMessage(env,userId,title,body,type="info",sourceKey=null){await ensureInternalMessageSchema(env);await env.DB.prepare("INSERT OR IGNORE INTO internal_messages(id,user_id,title,body,type,source_key) VALUES(?,?,?,?,?,?)").bind(uid(),userId,String(title||"বার্তা").slice(0,100),String(body||"").slice(0,500),String(type||"info").slice(0,30),sourceKey).run();}
@@ -187,7 +230,7 @@ async function ensureReferralSchema(env) {
       UPDATE users SET balance=balance + CAST((SELECT value FROM settings WHERE key='referral_bonus') AS INTEGER)
       WHERE id=(SELECT referrer_user_id FROM referrals WHERE referred_user_id=NEW.user_id
         AND reward_paid=1 AND turnover >= CAST((SELECT value FROM settings WHERE key='referral_threshold') AS INTEGER));
-      INSERT INTO transactions(id,user_id,type,amount,balance_after,note)
+      INSERT INTO tk_transactions(id,user_id,type,amount,balance_after,note)
       SELECT lower(hex(randomblob(16))),u.id,'referral_bonus',
         CAST((SELECT value FROM settings WHERE key='referral_bonus') AS INTEGER),
         u.balance,'Referral reward: referred player completed game turnover'
@@ -196,7 +239,7 @@ async function ensureReferralSchema(env) {
       INSERT OR IGNORE INTO internal_messages(id,user_id,title,body,type,source_key)
       SELECT lower(hex(randomblob(16))),NEW.user_id,'রেফারেল সম্পন্ন','আপনার রেফারেল কার্যক্রম সফলভাবে সম্পন্ন হয়েছে।','referral','referred-'||NEW.user_id
       WHERE EXISTS (SELECT 1 FROM referrals WHERE referred_user_id=NEW.user_id AND reward_paid=1);
-      INSERT INTO transactions(id,user_id,type,amount,balance_after,note)
+      INSERT INTO tk_transactions(id,user_id,type,amount,balance_after,note)
       SELECT lower(hex(randomblob(16))),NEW.user_id,'referral_qualified',0,0,'Referral qualification: game turnover completed'
       WHERE EXISTS (SELECT 1 FROM referrals WHERE referred_user_id=NEW.user_id AND reward_paid=1);
     END
@@ -463,8 +506,10 @@ async function route(req, env) {
     return new Response(null, { headers: cors });
   }
 
+  if (p.startsWith("/api/")) await ensureLegacyCompatibleSchema(env);
+
   if (p === "/api/health") {
-    return json({ ok: true, site: "TK777" });
+    return json({ ok: true, site: "TK777", database: "connected" });
   }
 
   /* REGISTER: new accounts use mobile number + password; existing email accounts remain unchanged */
@@ -480,7 +525,7 @@ async function route(req, env) {
     if (!/^01[3-9]\d{8}$/.test(phone)) return json({ error: "সঠিক ১১ সংখ্যার বাংলাদেশি মোবাইল নম্বর দিন" }, 400);
     if (password.length < 6 || password.length > 128) return json({ error: "পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে" }, 400);
     if (password !== confirmPassword) return json({ error: "পাসওয়ার্ড ও কনফার্ম পাসওয়ার্ড মিলছে না" }, 400);
-    const id = uid(), salt = uid(), ph = await passHash(password, salt);
+    const salt = uid(), ph = await passHash(password, salt);
     try {
       await ensureReferralSchema(env);
       const referralCode = String(body.referralCode || "").trim().toUpperCase();
@@ -489,9 +534,11 @@ async function route(req, env) {
         referrer = await env.DB.prepare("SELECT user_id FROM referral_codes WHERE code=?").bind(referralCode).first();
         if (!referrer) return json({ error: "Referral Link সঠিক নয়" }, 400);
       }
-      await env.DB.prepare("INSERT INTO users (id,username,email,password_hash,password_salt,balance) VALUES(?,?,?,?,?,0)").bind(id, phone, phone, ph, salt).run();
+      const inserted = await env.DB.prepare("INSERT INTO users (username,password,email,password_hash,password_salt,balance,role) VALUES(?,'',?,?,?,?, 'user')").bind(phone, phone, ph, salt, 0).run();
+      const id = Number(inserted.meta?.last_row_id);
+      if (!Number.isSafeInteger(id) || id <= 0) throw new Error("নতুন User ID পাওয়া যায়নি");
       await makeReferralCode(env,id);
-      if(referrer && referrer.user_id!==id) await env.DB.prepare("INSERT OR IGNORE INTO referrals(referred_user_id,referrer_user_id) VALUES(?,?)").bind(id,referrer.user_id).run();
+      if(referrer && Number(referrer.user_id)!==id) await env.DB.prepare("INSERT OR IGNORE INTO referrals(referred_user_id,referrer_user_id) VALUES(?,?)").bind(id,referrer.user_id).run();
       return await loginUser(id, env);
     } catch (e) {
       const message = String(e?.message || e || "");
@@ -511,9 +558,19 @@ async function route(req, env) {
     if (phone.startsWith("+880")) phone = "0" + phone.slice(4);
     else if (phone.startsWith("880")) phone = "0" + phone.slice(3);
     if (!/^01[3-9]\d{8}$/.test(phone)) return json({ error: "সঠিক মোবাইল নম্বর দিন" }, 400);
-    const u = await env.DB.prepare("SELECT * FROM users WHERE email=?").bind(phone).first();
-    if (!u || typeof password !== "string" || password.length > 128 || await passHash(password, u.password_salt) !== u.password_hash) {
+    const u = await env.DB.prepare("SELECT * FROM users WHERE email=? OR username=?").bind(phone, phone).first();
+    if (!u || typeof password !== "string" || password.length > 128) {
       return json({ error: "লগইন তথ্য সঠিক নয়" }, 401);
+    }
+    const hasModernHash = typeof u.password_hash === "string" && !!u.password_hash && typeof u.password_salt === "string" && !!u.password_salt;
+    const validPassword = hasModernHash
+      ? await passHash(password, u.password_salt) === u.password_hash
+      : String(u.password || "") === password;
+    if (!validPassword) return json({ error: "লগইন তথ্য সঠিক নয়" }, 401);
+    if (!hasModernHash) {
+      const salt = uid();
+      const passwordHash = await passHash(password, salt);
+      await env.DB.prepare("UPDATE users SET password_hash=?,password_salt=?,password='' WHERE id=?").bind(passwordHash, salt, u.id).run();
     }
     return await loginUser(u.id, env);
   }
@@ -521,15 +578,14 @@ async function route(req, env) {
   /* ADMIN BOOTSTRAP */
 
   if (p === "/api/admin/bootstrap" && method === "POST") {
-    if (!env.ADMIN_EMAIL || !env.ADMIN_PASSWORD) {
-      return json({ error: "Admin secrets configure করা হয়নি" }, 400);
+    if (!env.ADMIN_PASSWORD) {
+      return json({ error: "ADMIN_PASSWORD secret configure করা হয়নি" }, 400);
     }
-
+    const adminEmail = String(env.ADMIN_EMAIL || "tk777admin@tk777.local").trim().toLowerCase();
     const { email, password, username } = await req.json();
 
     if (
-      String(email || "").toLowerCase() !==
-        String(env.ADMIN_EMAIL).toLowerCase() ||
+      String(email || "").trim().toLowerCase() !== adminEmail ||
       password !== env.ADMIN_PASSWORD
     ) {
       return json({ error: "অনুমোদন হয়নি" }, 403);
@@ -540,22 +596,20 @@ async function route(req, env) {
     `).bind(String(env.ADMIN_EMAIL).toLowerCase()).first();
 
     if (!u) {
-      const id = uid();
       const salt = uid();
       const ph = await passHash(password, salt);
-
-      await env.DB.prepare(`
+      const inserted = await env.DB.prepare(`
         INSERT INTO users
-        (id,username,email,password_hash,password_salt,balance,role)
-        VALUES(?,?,?,?,?,0,'admin')
+        (username,password,email,password_hash,password_salt,balance,role)
+        VALUES(?,'',?,?,?,?,0,'admin')
       `).bind(
-        id,
-        username || "Administrator",
-        String(env.ADMIN_EMAIL).toLowerCase(),
+        username || "tk777admin",
+        adminEmail,
         ph,
         salt
       ).run();
-
+      const id = Number(inserted.meta?.last_row_id);
+      if (!Number.isSafeInteger(id) || id <= 0) throw new Error("Admin User ID পাওয়া যায়নি");
       u = { id };
     } else {
       await env.DB.prepare(`
@@ -590,7 +644,7 @@ async function route(req, env) {
         env.DB.prepare("INSERT INTO rebate_claims(id,user_id,amount_paisa) SELECT ?,user_id,pending_paisa FROM rebate_accounts WHERE user_id=? AND pending_paisa>0").bind(claimId,user.id),
         env.DB.prepare("UPDATE rebate_accounts SET pending_paisa=0 WHERE user_id=? AND EXISTS(SELECT 1 FROM rebate_claims WHERE id=? AND user_id=?)").bind(user.id,claimId,user.id),
         env.DB.prepare("UPDATE users SET balance=balance+(SELECT amount_paisa/100.0 FROM rebate_claims WHERE id=? AND user_id=?) WHERE id=? AND EXISTS(SELECT 1 FROM rebate_claims WHERE id=? AND user_id=?)").bind(claimId,user.id,user.id,claimId,user.id),
-        env.DB.prepare("INSERT INTO transactions(id,user_id,type,amount,balance_after,note) SELECT ?,?, 'rebate_bonus',amount_paisa/100.0,(SELECT balance FROM users WHERE id=?),'Rebate claimed' FROM rebate_claims WHERE id=? AND user_id=?").bind(uid(),user.id,user.id,claimId,user.id)
+        env.DB.prepare("INSERT INTO tk_transactions(id,user_id,type,amount,balance_after,note) SELECT ?,?, 'rebate_bonus',amount_paisa/100.0,(SELECT balance FROM users WHERE id=?),'Rebate claimed' FROM rebate_claims WHERE id=? AND user_id=?").bind(uid(),user.id,user.id,claimId,user.id)
       ]);
       const claim=await env.DB.prepare("SELECT amount_paisa FROM rebate_claims WHERE id=? AND user_id=?").bind(claimId,user.id).first();
       if(!claim)return json({error:"ক্লেইম করার মতো রিবেট এখনো জমা হয়নি"},400);
@@ -600,7 +654,7 @@ async function route(req, env) {
     if(p==="/api/messages"&&method==="GET"){
       if(!user)return json({error:"লগইন করুন"},401);
       await ensureInternalMessageSchema(env);
-      const tx=await env.DB.prepare("SELECT id,type,amount,note FROM transactions WHERE user_id=? AND type IN ('coin_bonus','referral_bonus','referral_milestone_bonus','admin_adjustment','admin_balance_set','bonus','new_user_bonus','mission_bonus','withdrawal_refund') ORDER BY created_at DESC LIMIT 100").bind(user.id).all();
+      const tx=await env.DB.prepare("SELECT id,type,amount,note FROM tk_transactions WHERE user_id=? AND type IN ('coin_bonus','referral_bonus','referral_milestone_bonus','admin_adjustment','admin_balance_set','bonus','new_user_bonus','mission_bonus','withdrawal_refund') ORDER BY created_at DESC LIMIT 100").bind(user.id).all();
       for(const t of(tx.results||[])){
         const n=Number(t.amount||0),reason=String(t.note||"");let title="অ্যাকাউন্ট আপডেট",body=reason||"আপনার অ্যাকাউন্টে পরিবর্তন হয়েছে।",type="info";
         if(["referral_bonus","referral_milestone_bonus"].includes(t.type)){title="রেফারেল বোনাস";body=n+" টাকা বোনাস যোগ হয়েছে। "+reason;type="bonus";}
@@ -624,7 +678,7 @@ async function route(req, env) {
       await ensureReferralSchema(env);
       const code=await makeReferralCode(env,user.id);
       const stats=await env.DB.prepare("SELECT COUNT(*) AS total,SUM(CASE WHEN reward_paid=1 THEN 1 ELSE 0 END) AS qualified FROM referrals WHERE referrer_user_id=?").bind(user.id).first();
-      const rewards=await env.DB.prepare("SELECT COALESCE(SUM(amount),0) AS total FROM transactions WHERE user_id=? AND type IN ('referral_bonus','referral_milestone_bonus')").bind(user.id).first();
+      const rewards=await env.DB.prepare("SELECT COALESCE(SUM(amount),0) AS total FROM tk_transactions WHERE user_id=? AND type IN ('referral_bonus','referral_milestone_bonus')").bind(user.id).first();
       const config=await env.DB.prepare("SELECT key,value FROM settings WHERE key IN ('referral_threshold','referral_bonus')").all();
       const values=Object.fromEntries((config.results||[]).map(x=>[x.key,Number(x.value)]));
       const progress=await env.DB.prepare("SELECT COALESCE(SUM(turnover),0) AS turnover FROM referrals WHERE referrer_user_id=?").bind(user.id).first();
@@ -643,7 +697,7 @@ async function route(req, env) {
       const result=await env.DB.batch([
         env.DB.prepare("INSERT OR IGNORE INTO referral_milestone_claims(user_id,milestone,amount) SELECT ?,?,? WHERE (SELECT COUNT(*) FROM referrals WHERE referrer_user_id=? AND reward_paid=1)>=?").bind(user.id,milestone,amount,user.id,milestone),
         env.DB.prepare("UPDATE users SET balance=balance+? WHERE id=? AND changes()=1").bind(amount,user.id),
-        env.DB.prepare("INSERT INTO transactions(id,user_id,type,amount,balance_after,note) SELECT lower(hex(randomblob(16))),?, 'referral_milestone_bonus', ?, balance, ? FROM users WHERE id=? AND changes()=1").bind(user.id,amount,"Referral milestone "+milestone+" bonus",user.id)
+        env.DB.prepare("INSERT INTO tk_transactions(id,user_id,type,amount,balance_after,note) SELECT lower(hex(randomblob(16))),?, 'referral_milestone_bonus', ?, balance, ? FROM users WHERE id=? AND changes()=1").bind(user.id,amount,"Referral milestone "+milestone+" bonus",user.id)
       ]);
       const claimed=await env.DB.prepare("SELECT amount FROM referral_milestone_claims WHERE user_id=? AND milestone=?").bind(user.id,milestone).first();
       if(!claimed)return json({error:"এই বোনাস পাওয়ার জন্য আরও সফল রেফার প্রয়োজন"},400);
@@ -748,7 +802,7 @@ async function route(req, env) {
         return json({ error: "পর্যাপ্ত কয়েন নেই" }, 400);
       }
       const after = await env.DB.prepare("SELECT balance FROM users WHERE id=?").bind(user.id).first();
-      await env.DB.prepare("INSERT INTO transactions(id,user_id,type,amount,balance_after,note) VALUES(?,?,?,?,?,?)").bind(uid(), user.id, "withdrawal_hold", -amount, after.balance, "Coin reserved on withdrawal request").run();
+      await env.DB.prepare("INSERT INTO tk_transactions(id,user_id,type,amount,balance_after,note) VALUES(?,?,?,?,?,?)").bind(uid(), user.id, "withdrawal_hold", -amount, after.balance, "Coin reserved on withdrawal request").run();
       return json({ ok: true, balance: after.balance });
     }
 
@@ -1063,7 +1117,7 @@ async function route(req, env) {
     if (p === "/api/history") {
       const rows = await env.DB.prepare(`
         SELECT type,amount,balance_after,note,created_at
-        FROM transactions
+        FROM tk_transactions
         WHERE user_id=?
         ORDER BY created_at DESC
         LIMIT 50
@@ -1226,8 +1280,8 @@ async function route(req, env) {
         if(payout)await env.DB.prepare("UPDATE users SET balance=balance+? WHERE id=?").bind(payout,user.id).run();
         const bal=await env.DB.prepare("SELECT balance FROM users WHERE id=?").bind(user.id).first(),entries=[];
         await ensureRebateSchema(env);
-        if(!isFreeSpin)entries.push(env.DB.prepare("INSERT INTO transactions(id,user_id,type,amount,balance_after,note) VALUES(?,?,?,?,?,?)").bind(uid(),user.id,"game",-stake,bal.balance-payout,game.name+" বেট"));
-        if(payout)entries.push(env.DB.prepare("INSERT INTO transactions(id,user_id,type,amount,balance_after,note) VALUES(?,?,?,?,?,?)").bind(uid(),user.id,"win",payout,bal.balance,game.name+" জয়"));
+        if(!isFreeSpin)entries.push(env.DB.prepare("INSERT INTO tk_transactions(id,user_id,type,amount,balance_after,note) VALUES(?,?,?,?,?,?)").bind(uid(),user.id,"game",-stake,bal.balance-payout,game.name+" বেট"));
+        if(payout)entries.push(env.DB.prepare("INSERT INTO tk_transactions(id,user_id,type,amount,balance_after,note) VALUES(?,?,?,?,?,?)").bind(uid(),user.id,"win",payout,bal.balance,game.name+" জয়"));
         entries.push(env.DB.prepare("INSERT INTO game_rounds(id,user_id,game_id,game_type,bet_amount,multiplier,payout) VALUES(?,?,?,?,?,?,?)").bind(roundId,user.id,gameId,"superace",isFreeSpin?0:stake,multiplier,payout));
         await env.DB.batch(entries);
         const responseData={multiplier,payout,balance:bal.balance,roundId,stake:isFreeSpin?0:stake,cascadeCount,maxCascadeX,frames,finalGrid:grid,freeSpins,freeSpin:isFreeSpin,scatterCount,freeSpinAward};
@@ -1359,9 +1413,9 @@ async function route(req, env) {
         await env.DB.batch([
           env.DB.prepare("INSERT INTO game_rounds(id,user_id,game_id,game_type,bet_amount,multiplier,payout) VALUES(?,?,?,?,?,?,?)")
             .bind(roundId, user.id, gameId, "minigame", bet, multiplier, payout),
-          env.DB.prepare("INSERT INTO transactions(id,user_id,type,amount,balance_after,note) VALUES(?,?,?,?,?,?)")
+          env.DB.prepare("INSERT INTO tk_transactions(id,user_id,type,amount,balance_after,note) VALUES(?,?,?,?,?,?)")
             .bind(uid(), user.id, "game", -bet, bal.balance - payout, game.name + " বেট"),
-          ...(payout ? [env.DB.prepare("INSERT INTO transactions(id,user_id,type,amount,balance_after,note) VALUES(?,?,?,?,?,?)")
+          ...(payout ? [env.DB.prepare("INSERT INTO tk_transactions(id,user_id,type,amount,balance_after,note) VALUES(?,?,?,?,?,?)")
             .bind(uid(), user.id, "win", payout, bal.balance, game.name + " জয়")] : [])
         ]);
         return json({ ok: true, multiplier, payout, balance: bal.balance, result, detail, roundId });
@@ -1466,7 +1520,7 @@ async function route(req, env) {
         ).bind(user.id).first();
 
         await env.DB.prepare(`
-          INSERT INTO transactions
+          INSERT INTO tk_transactions
           (id,user_id,type,amount,balance_after,note)
           VALUES(?,?,?,?,?,?)
         `).bind(
@@ -1529,7 +1583,7 @@ async function route(req, env) {
       `).bind(user.id).first();
 
       await env.DB.prepare(`
-        INSERT INTO transactions
+        INSERT INTO tk_transactions
         (id,user_id,type,amount,balance_after,note)
         VALUES(?,?,?,?,?,?)
       `).bind(
@@ -1687,7 +1741,7 @@ async function route(req, env) {
         `).bind(payout, user.id, roundId),
 
         env.DB.prepare(`
-          INSERT INTO transactions
+          INSERT INTO tk_transactions
           (id,user_id,type,amount,balance_after,note)
           SELECT ?,?,'win',?,balance,?
           FROM users
@@ -1847,7 +1901,7 @@ async function route(req, env) {
       await env.DB.prepare("CREATE TABLE IF NOT EXISTS demo_withdrawals (id TEXT PRIMARY KEY,user_id TEXT NOT NULL,method TEXT NOT NULL,amount INTEGER NOT NULL,status TEXT NOT NULL DEFAULT 'pending',created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,reviewed_at TEXT,reviewed_by TEXT)").run();
       await env.DB.prepare("CREATE TABLE IF NOT EXISTS coin_requests (id TEXT PRIMARY KEY,user_id TEXT NOT NULL,amount INTEGER NOT NULL,status TEXT NOT NULL DEFAULT 'pending',created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,reviewed_at TEXT,reviewed_by TEXT)").run();
       const [transactions, rounds, crashRounds, deposits, withdrawals, coinRequests] = await Promise.all([
-        env.DB.prepare("SELECT id,type,amount,balance_after,note,created_at FROM transactions WHERE user_id=? ORDER BY created_at DESC LIMIT 100").bind(userId).all(),
+        env.DB.prepare("SELECT id,type,amount,balance_after,note,created_at FROM tk_transactions WHERE user_id=? ORDER BY created_at DESC LIMIT 100").bind(userId).all(),
         env.DB.prepare("SELECT id,game_id,game_type,bet_amount,multiplier,payout,created_at FROM game_rounds WHERE user_id=? ORDER BY created_at DESC LIMIT 100").bind(userId).all(),
         env.DB.prepare("SELECT id,game_id,bet_amount,crash_multiplier,status,cashout_multiplier,payout,created_at FROM crash_rounds WHERE user_id=? ORDER BY created_at DESC LIMIT 100").bind(userId).all(),
         env.DB.prepare("SELECT id,method,amount,demo_reference,status,created_at FROM demo_deposits WHERE user_id=? ORDER BY created_at DESC LIMIT 50").bind(userId).all(),
@@ -1891,7 +1945,7 @@ async function route(req, env) {
       const updated = await env.DB.prepare("UPDATE users SET balance=? WHERE id=? AND balance=?").bind(nextBalance, userId, current.balance).run();
       if (!updated.meta?.changes) return json({ error: "ব্যালেন্স অন্য অনুরোধে পরিবর্তিত হয়েছে। আবার চেষ্টা করুন।" }, 409);
       const note=String(body.note||"Admin directly set coin balance").slice(0,160),txId=uid();
-      await env.DB.prepare("INSERT INTO transactions(id,user_id,type,amount,balance_after,note) VALUES(?,?,?,?,?,?)").bind(txId,userId,"admin_balance_set",delta,nextBalance,note).run();
+      await env.DB.prepare("INSERT INTO tk_transactions(id,user_id,type,amount,balance_after,note) VALUES(?,?,?,?,?,?)").bind(txId,userId,"admin_balance_set",delta,nextBalance,note).run();
       await createInternalMessage(env,userId,"অ্যাডমিন ব্যালেন্স আপডেট",(delta>=0?"+":"")+delta+" টাকা ব্যালেন্স পরিবর্তন হয়েছে। কারণ: "+note,"balance","transaction-"+txId);
       return json({ok:true,balance:nextBalance,previousBalance:Number(current.balance)});
     }
@@ -1932,7 +1986,7 @@ async function route(req, env) {
 
       const reason=String(note||"Admin credit adjustment").slice(0,160),txId=uid();
       await env.DB.prepare(`
-        INSERT INTO transactions(id,user_id,type,amount,balance_after,note) VALUES(?,?,?,?,?,?)
+        INSERT INTO tk_transactions(id,user_id,type,amount,balance_after,note) VALUES(?,?,?,?,?,?)
       `).bind(txId,userId,"admin_adjustment",n,u.balance,reason).run();
       await createInternalMessage(env,userId,"অ্যাডমিন ব্যালেন্স আপডেট",(n>=0?"+":"")+n+" টাকা ব্যালেন্স পরিবর্তন হয়েছে। কারণ: "+reason,"balance","transaction-"+txId);
       return json({ok:true,balance:u.balance});
@@ -2163,7 +2217,7 @@ async function route(req, env) {
         const refunded = await env.DB.prepare("UPDATE users SET balance=balance+? WHERE id=?").bind(request.amount, request.user_id).run();
         if (!refunded.meta?.changes) return json({ error: "কয়েন ফেরত দেওয়া যায়নি; Admin লগ পরীক্ষা করুন" }, 500);
         const u = await env.DB.prepare("SELECT balance FROM users WHERE id=?").bind(request.user_id).first(),txId=uid();
-        await env.DB.prepare("INSERT INTO transactions(id,user_id,type,amount,balance_after,note) VALUES(?,?,?,?,?,?)").bind(txId,request.user_id,"withdrawal_refund",request.amount,u.balance,"Coin refunded after withdrawal rejection").run();
+        await env.DB.prepare("INSERT INTO tk_transactions(id,user_id,type,amount,balance_after,note) VALUES(?,?,?,?,?,?)").bind(txId,request.user_id,"withdrawal_refund",request.amount,u.balance,"Coin refunded after withdrawal rejection").run();
         await createInternalMessage(env,request.user_id,"উইথড্র রিকোয়েস্ট বাতিল","আপনার "+Number(request.amount)+" টাকা Withdraw Request বাতিল হয়েছে। কয়েন ব্যালেন্সে ফেরত দেওয়া হয়েছে।","withdrawal","withdraw-rejected-"+request.id);
       }
       return json({ok:true,status});
@@ -2191,7 +2245,7 @@ async function route(req, env) {
         const txId=uid();
         await env.DB.batch([
           env.DB.prepare("UPDATE users SET balance=balance+? WHERE id=?").bind(cr.amount,cr.user_id),
-          env.DB.prepare("INSERT INTO transactions(id,user_id,type,amount,balance_after,note) SELECT ?,id,'coin_bonus',?,balance,'Admin approved coin request' FROM users WHERE id=?").bind(txId,cr.amount,cr.user_id)
+          env.DB.prepare("INSERT INTO tk_transactions(id,user_id,type,amount,balance_after,note) SELECT ?,id,'coin_bonus',?,balance,'Admin approved coin request' FROM users WHERE id=?").bind(txId,cr.amount,cr.user_id)
         ]);
         await createInternalMessage(env,cr.user_id,"অ্যাডমিন বোনাস দিয়েছেন",Number(cr.amount)+" টাকা বোনাস যোগ হয়েছে। কারণ: অ্যাডমিন আপনার Coin Request অনুমোদন করেছেন।","bonus","transaction-"+txId);
       }
