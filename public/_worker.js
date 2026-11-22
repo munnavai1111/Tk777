@@ -2331,16 +2331,26 @@ async function loginUser(id, env) {
 export default {
   async fetch(req, env, ctx) {
     try {
+      const incoming = new URL(req.url);
+
+      // The D1 database is bound to tk777-api, so forward all API calls there.
+      if (incoming.pathname.startsWith("/api/")) {
+        incoming.protocol = "https:";
+        incoming.hostname = "tk777-api.dhmatelecom.workers.dev";
+        incoming.port = "";
+        return await fetch(new Request(incoming.toString(), req));
+      }
+
       return await route(req, env);
     } catch (err) {
-      console.error("TK777 Worker exception", {
+      console.error("TK777 Pages proxy exception", {
         message: err?.message,
         stack: err?.stack,
         path: new URL(req.url).pathname
       });
 
       return json({
-        error: "Worker exception",
+        error: "API সংযোগে সমস্যা হয়েছে",
         details: String(err?.message || err)
       }, 500);
     }
