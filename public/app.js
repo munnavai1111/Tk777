@@ -538,7 +538,7 @@ function gameCard(g) {
     ? `<div class="placeholder live-game-cover ${live[2]}"><span>${live[0]}</span><small>${esc(live[1])}</small></div>`
     : `<div class="placeholder">${type === 'aviator' ? '✈️' : type === 'superace' ? '🂡' : '🎮'}</div>`;
   return `
-    <button class="game" onclick="openGame('${esc(g.id)}')">
+    <button class="game ${type === 'evolution-demo' ? 'live-game-tall' : ''}" onclick="openGame('${esc(g.id)}')">
       <span class="favorite-toggle"
         onclick="event.stopPropagation();toggleFavorite('${esc(g.id)}',this)">
         ${favoriteIds().includes(g.id) ? '♥' : '♡'}
