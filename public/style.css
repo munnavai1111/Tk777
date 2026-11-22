@@ -1647,3 +1647,15 @@ body{background:#063b39}
 
 /* Keep original live-game logo artwork fully visible inside compact tiles. */
 .game img.live-game-logo{object-fit:contain!important;padding:6px;background:#082b2b;box-sizing:border-box}
+
+
+/* Deposit prompt shown when selecting non-exempt games */
+.game-deposit-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:22px;background:rgba(0,12,14,.68);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);animation:gameDepositFade .16s ease-out}
+.game-deposit-modal{position:relative;width:min(100%,360px);padding:27px 20px 20px;text-align:center;border:1px solid #d9b84d;border-radius:18px;background:linear-gradient(145deg,#10564d,#082f32);box-shadow:0 16px 48px #0009;animation:gameDepositPop .2s ease-out}
+.game-deposit-close{position:absolute;right:9px;top:8px;width:32px;height:32px;padding:0;border-radius:50%;background:#ffffff18;color:#fff;font-size:25px;line-height:1}
+.game-deposit-icon{width:54px;height:54px;margin:0 auto 12px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#ffe27b,#e9a82f);color:#35250a;font-size:34px;font-weight:700}
+.game-deposit-modal h3{margin:4px 18px 8px;color:#ffdc69;font-size:20px}
+.game-deposit-modal p{margin:0 0 18px;color:#d1eee5;font-size:13px}
+.game-deposit-button{width:100%;padding:12px;background:linear-gradient(90deg,#f8d75d,#eaa52d);color:#30230c;font-size:15px}
+@keyframes gameDepositFade{from{opacity:0}to{opacity:1}}
+@keyframes gameDepositPop{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
