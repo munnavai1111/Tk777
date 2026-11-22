@@ -10,7 +10,7 @@ run_worker_first = true
 [[d1_databases]]
 binding = "DB"
 database_name = "tk777-db"
-database_id = "4e82c516-2037-4c8d-a3fa-b9c02bdca94a"
+database_id = "4a9f4daa-6fc1-4833-b5b9-6fa383f9edcf"
 
 [vars]
 SITE_NAME = "TK777"
