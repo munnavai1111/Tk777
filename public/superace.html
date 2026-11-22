@@ -49,7 +49,7 @@ html,body{margin:0;width:100%;height:100%;min-height:100%;overflow:hidden;backgr
 .controls{flex:0 0 78px;min-height:78px;display:flex;align-items:center;justify-content:space-around;padding:4px 7px;background:linear-gradient(180deg,#3a2117 0%,#1a120f 42%,#090b12 100%);border-top:3px solid #9b5b2c;border-bottom:1px solid #6d4929;gap:3px;box-shadow:0 -5px 16px #0009}
 .ctrl{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:9px;color:#f6dfa6;min-width:35px;text-shadow:0 1px #000}
 .round{width:27px;height:27px;border-radius:50%;border:1px solid #d7ad61;background:radial-gradient(circle at 35% 25%,#9c7950,#39251a 72%);color:#fff1bd;font-size:16px;font-weight:900;box-shadow:inset 0 1px 3px #fff5,0 2px 3px #000}
-.bet-control{display:flex;flex-direction:row;gap:3px;align-items:center;min-width:98px}
+.bet-control{display:flex;flex-direction:row;gap:3px;align-items:center;min-width:0}.bet-value.bet-open{width:46px;height:46px;min-width:46px;padding:3px;border-radius:50%;justify-content:center}.bet-value.bet-open small{font-size:7px}.bet-value.bet-open b{font-size:11px}
 .bet-value{min-width:34px;text-align:center;display:flex;flex-direction:column;gap:2px}
 .bet-value small{font-size:8px;color:#f6dfa6}.bet-value b{font-size:12px;color:#fff}
 .spin{width:70px;height:70px;flex:0 0 70px;border-radius:50%;border:4px solid #ffdf85;background:radial-gradient(circle at 35% 25%,#fffbd0,#ffc02b 48%,#a64a05 82%);color:#672605;font-weight:1000;font-size:12px;box-shadow:0 0 0 3px #87400c,0 0 18px #ffb32a,inset 0 0 0 2px #fff8}
@@ -92,7 +92,7 @@ html,body{margin:0;width:100%;height:100%;min-height:100%;overflow:hidden;backgr
 <section class="stage"><div class="board" id="board"></div></section>
 <div class="status" id="status">কার্ড মিলিয়ে জিতুন</div><div class="win-line">WIN&nbsp; <span id="cascadeWin">0.00</span>&nbsp; · &nbsp;TOTAL WIN&nbsp; <span id="win">0.00</span></div>
 <section class="controls">
- <div class="ctrl bet-control"><button class="round" id="betMinus" type="button" aria-label="Decrease bet">−</button><button class="bet-value bet-open" id="betOpen" type="button" aria-label="Select bet amount"><small>BET ▾</small><b id="bet">50</b></button><button class="round" id="betPlus" type="button" aria-label="Increase bet">+</button></div>
+ <div class="ctrl bet-control"><button class="bet-value bet-open" id="betOpen" type="button" aria-label="Select bet amount"><small>BET ▾</small><b id="bet">50</b></button></div>
  <div class="ctrl"><button class="spin" id="spin" type="button">✦<br>SPIN</button></div>
  <div class="ctrl"><button class="round" id="auto" type="button">⟳</button>Auto</div>
  <div class="ctrl"><button class="round" id="turbo" type="button">ϟ</button>Turbo</div>
@@ -207,7 +207,7 @@ function draw(grid,wins,drop,spinning,goldenCells,replaceCells,replaceType,moves
 }
 function update(){
  $('balance').textContent=fmt(balance);$('bet').textContent=String(bet);
- $('betMinus').disabled=busy||bet<=1;$('betPlus').disabled=busy||bet>=1000000;
+ 
  $('betCurrent').textContent=fmt(bet);
  renderBetOptions();
 }
@@ -444,8 +444,6 @@ $('freeStart').addEventListener('click',()=>{
 $('spin').addEventListener('click',()=>{auto=false;if(freeSpins>0&&!freeSpinReady){showFreeSpinOffer();return;}play()});
 $('auto').addEventListener('click',()=>{if(busy)return;auto=!auto;$('auto').style.background=auto?'radial-gradient(circle,#ffe58a,#a65a08)':'';if(auto)play()});
 $('turbo').addEventListener('click',()=>{turbo=!turbo;$('turbo').style.background=turbo?'radial-gradient(circle,#ffe58a,#a65a08)':''});
-$('betMinus').addEventListener('click',()=>{if(busy)return;bet=Math.max(1,bet-10);update()});
-$('betPlus').addEventListener('click',()=>{if(busy)return;bet=Math.min(1000000,bet+10);update()});
 $('betOpen').addEventListener('click',openBetPicker);
 $('betClose').addEventListener('click',closeBetPicker);
 $('betConfirm').addEventListener('click',closeBetPicker);
