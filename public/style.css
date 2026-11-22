@@ -1589,3 +1589,29 @@ body{background:#063b39}
 .game .live-game-cover small{font-size:8px;letter-spacing:1.2px;font-weight:800;color:#fff2ce}
 .game .live-game-cover.live-roulette{background:radial-gradient(circle at 50% 35%,#9b252d 0,#40151f 42%,#101b1c 100%)}
 .game .live-game-cover.live-cards{background:radial-gradient(circle at 50% 35%,#246b55 0,#123c36 48%,#101b1c 100%)}
+
+/* TK777 Evolution-style demo preview screens */
+.evo-demo-page{padding-top:12px}
+.evo-demo-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.evo-demo-live{display:flex;align-items:center;gap:7px;color:#ffd5d5;font-size:11px;font-weight:900;letter-spacing:1.5px}
+.evo-demo-live i{width:8px;height:8px;border-radius:50%;background:#ff4d61;box-shadow:0 0 12px #ff4d61}
+.evo-demo-stage{min-height:340px;border:1px solid rgba(255,220,150,.35);border-radius:18px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:25px 14px;text-align:center;background:radial-gradient(circle at 50% 40%,#70451d,#24142f 65%,#0b2020);box-shadow:inset 0 0 55px #0008}
+.evo-demo-stage:before,.evo-demo-stage:after{content:"";position:absolute;inset:12px;border:1px solid #f7d58a55;border-radius:14px;pointer-events:none}
+.evo-demo-orbit{position:absolute;width:235px;height:235px;border:2px dashed #f9d37b66;border-radius:50%;animation:evoOrbit 18s linear infinite}
+.evo-demo-symbol{font-size:90px;line-height:1.2;z-index:1;filter:drop-shadow(0 8px 15px #0009);animation:evoFloat 3s ease-in-out infinite}
+.evo-demo-label{z-index:1;color:#ffe6a8;font-size:11px;font-weight:900;letter-spacing:3px;margin-top:8px}
+.evo-demo-stage h2{z-index:1;color:#fff;font-size:25px;margin:9px 0;text-shadow:0 3px 15px #000}
+.evo-demo-pills{display:flex;gap:8px;z-index:1;margin-top:8px}
+.evo-demo-pills span{border:1px solid #ffe3a077;border-radius:30px;padding:6px 10px;color:#ffe8bd;font-size:9px;letter-spacing:1px}
+.evo-theme-funky,.evo-theme-disco{background:radial-gradient(circle at 50% 35%,#7c287f,#28154c 65%,#0b2020)}
+.evo-theme-mega,.evo-theme-dream{background:radial-gradient(circle at 50% 35%,#236c80,#15234c 65%,#0b2020)}
+.evo-theme-lightning{background:radial-gradient(circle at 50% 35%,#735c17,#292044 65%,#0b2020)}
+.evo-theme-monopoly,.evo-theme-deal{background:radial-gradient(circle at 50% 35%,#25684e,#142c34 65%,#0b2020)}
+.evo-theme-coin{background:radial-gradient(circle at 50% 35%,#8a5720,#332044 65%,#0b2020)}
+.evo-demo-notice{margin-top:13px;background:#103d39;border-color:#28685d}
+.evo-demo-notice b{color:#ffe3a1;font-size:12px;letter-spacing:1px}
+.evo-demo-notice p{font-size:13px;line-height:1.6;margin:8px 0}
+.evo-demo-notice small{color:#a9c9bf}
+.evo-demo-back{width:100%;margin-top:12px}
+@keyframes evoOrbit{to{transform:rotate(360deg)}}
+@keyframes evoFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-9px) scale(1.04)}}
