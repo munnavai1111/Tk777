@@ -1237,7 +1237,7 @@ function openGame(id) {
   const gameName = String(g.name || '');
   const gameType = String(g.game_type || '').toLowerCase();
   const isAviator = gameType === 'aviator' || /aviator/i.test(gameName);
-  const isSuperAce = gameType === 'superace' || /super\\s*ace/i.test(gameName);
+  const isSuperAce = gameType === 'superace' || /super\s*ace/i.test(gameName);
   if (!isAviator && !isSuperAce) {
     isPlayingGame = false;
     showGameDepositPopup();
