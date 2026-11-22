@@ -1206,6 +1206,21 @@ function logout() {
 
 let gameDepositPopupTimer = null;
 
+// Catch clicks on every game tile in the home/category grids before any legacy inline handler.
+if (!window.tk777GameTilePopupBound) {
+  window.tk777GameTilePopupBound = true;
+  document.addEventListener('click', function(event) {
+    const tile = event.target.closest('.games .game');
+    if (!tile) return;
+    const label = String(tile.getAttribute('aria-label') || tile.querySelector('strong')?.textContent || '').trim();
+    if (/aviator/i.test(label) || /super\\s*ace/i.test(label)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+    showGameDepositPopup();
+  }, true);
+}
+
 function showGameDepositPopup() {
   const existing = document.getElementById('gameDepositPopup');
   if (existing) existing.remove();
