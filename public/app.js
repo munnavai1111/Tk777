@@ -547,7 +547,19 @@ function gameCard(g) {
     : /super\s*ace/.test(name) || type === 'superace'
       ? TK777_GAME_COVER_ART.superace
       : '';
-  const cover = g.image_url || officialCover;
+  const liveCoverArt = {
+    'evo-crazy-time': 'https://www.onecasino.com/img/screenshots/crazytime_20034_6_1000x660.jpg',
+    'evo-funky-time': 'https://rollbit.com/game-images/evolution_FunkyTime.webp',
+    'evo-disco-balls': 'https://discoballs.live/images/disco-balls-casino.webp',
+    'evo-mega-ball': 'https://slotcatalog.com/userfiles/image/games/Evolution-Gaming/16426/Mega-Ball-Evolution-Gaming-hot_cold.jpg',
+    'evo-dream-catcher': 'https://monkeytilt.com/images/media/images/games/evo_livedreamcatcher.png?f=webp&q=60&w=400',
+    'evo-lightning-roulette': 'https://www.casinobarcelona.es/v2005/img/logos/evolution/EVO-ruleta-lightning.webp?v=75',
+    'evo-monopoly-live': 'https://smartcasinoguide.com/app/uploads/2020/04/monopoly-live-logo.png',
+    'evo-deal-or-no-deal': 'https://slotcatalog.com/userfiles/image/games/Evolution-Gaming/12568/Deal-Or-No-Deal-Live-1.jpg',
+    'evo-crazy-coin-flip': 'https://mediumrare.imgix.net/cdd56420162814d3bba92e4060c6b3f1cf6c89ca9eb4485f2ba3755c1cc78635?q=85',
+    'evo-xxx-lightning': 'https://cdn.onlinecasinoground.nl/2022/04/xxxtreme-lightning-roulette-logo-510px.jpg'
+  };
+  const cover = g.image_url || officialCover || liveCoverArt[id] || '';
   const placeholder = live
     ? `<div class="placeholder live-game-cover ${live[2]}"><span>${live[0]}</span><small>${esc(live[1])}</small></div>`
     : `<div class="placeholder">${type === 'aviator' ? '✈️' : type === 'superace' ? '🂡' : '🎮'}</div>`;
