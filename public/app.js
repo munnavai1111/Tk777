@@ -1626,7 +1626,7 @@ function startCrashMonitor(gameId) {
 
   crashTimer = setInterval(() => {
     pollCrashState();
-  },400);
+  },300);
 }
 
 function multiplierHistoryClass(value) {
@@ -1879,52 +1879,24 @@ async function pollCrashState() {
 
       const flash = $('#stageFlash');
       if (flash) flash.classList.add('show');
+
+      // The global state already confirms the crash; avoid one extra API call per bet slot.
+      for (let i=0;i<crashSlots.length;i++) {
+        const slot = crashSlots[i];
+        if (!slot.roundId || slot.busy || slot.status !== 'active') continue;
+
+        slot.status = 'crashed';
+        slot.roundId = null;
+        slot.auto = false;
+        updateSlotStatus(i,'CRASHED');
+        const result = $('#result'+i);
+        if (result) result.textContent = 'ক্র্যাশ হয়েছে · পেআউট ০';
+        updateSlotButtons(i);
+      }
     }
 
     updateCrashHistory(state.previous || []);
     updateAllSlotButtons();
-
-    for (let i=0;i<crashSlots.length;i++) {
-      const slot = crashSlots[i];
-
-      if (!slot.roundId || slot.busy) continue;
-
-      if (slot.status === 'active') {
-        try {
-          const t = await api('/crash/tick',{
-            roundId:slot.roundId
-          });
-
-          if (t.balance !== undefined && me) {
-            me.balance = t.balance;
-            const bal = $('#gameBalance');
-            if (bal) bal.textContent = money(me.balance);
-          }
-
-          if (t.betStatus !== 'active') {
-            slot.status = t.betStatus;
-            slot.roundId = null;
-
-            updateSlotStatus(
-              i,
-              t.betStatus === 'cashed_out' ? 'CASHED OUT' : 'CRASHED'
-            );
-
-            const result = $('#result'+i);
-
-            if (result) {
-              result.textContent = t.betStatus === 'cashed_out'
-                ? `Cash Out: ${t.multiplier}x · পেআউট ${t.payout} ক্রেডিট`
-                : 'ক্র্যাশ হয়েছে · পেআউট ০';
-            }
-
-            updateSlotButtons(i);
-          }
-        } catch (e) {
-          console.error('Crash bet status error',e);
-        }
-      }
-    }
 
   } catch (e) {
     console.error('Crash state error',e);
