@@ -127,6 +127,31 @@ async function games(){
  <button class="primary">Save Game</button></form></div>
   <div class="card"><h3>আগের গেমগুলো — Delete Control</h3><p class="muted">Delete করলে গেমটি ইউজার সাইট থেকে লুকানো হবে; পুরোনো রাউন্ড/হিস্ট্রি অক্ষত থাকবে।</p>${d.games.map(g=>`<div class="row" style="justify-content:space-between;margin:8px 0"><span>${esc(g.name)} · ${esc(g.game_type)} · ${g.active ? 'চালু' : 'মুছে রাখা'}</span><span>${g.active ? `<button type="button" onclick="editGame('${esc(g.id)}')">Edit</button> <button type="button" onclick="delGame('${esc(g.id)}')">Delete</button>` : 'Deleted'}</span></div>`).join('')}</div>`;
 
+ // Dedicated image URL controls for the two main games
+ const mainImageGames=[
+  {type:'aviator',label:'Aviator',id:'aviatorCardImageUrl'},
+  {type:'superace',label:'Super Ace',id:'superAceCardImageUrl'}
+ ];
+ const mainImageRows=mainImageGames.map(x=>({ ...x, game:d.games.find(g=>String(g.game_type).toLowerCase()===x.type) }));
+ $('#view').insertAdjacentHTML('afterbegin',`<div class="card"><h3>Aviator ও Super Ace — আলাদা Image URL</h3>
+ <p class="muted">এখানে URL সেভ করলে হোম পেজে ওই গেমের ছবিই দেখাবে। URL খালি রাখলে আগের ডিফল্ট ছবি ব্যবহার হবে।</p>
+ ${mainImageRows.map(x=>`<div style="margin:12px 0"><label>${x.label} Image URL</label><input class="field main-game-image-url" data-game-type="${x.type}" type="url" maxlength="1000" placeholder="https://example.com/${x.type}.jpg" value="${esc(x.game?.image_url||'')}"><div class="muted">${x.game?'গেম পাওয়া গেছে: '+esc(x.game.name):'এই Game Type-এর কোনো গেম রেকর্ড পাওয়া যায়নি। আগে Games ফর্ম থেকে গেমটি তৈরি করুন।'}</div></div>`).join('')}
+ <button type="button" class="primary" id="saveMainGameImages">Aviator / Super Ace Image URL Save</button><div id="mainGameImageMsg" class="muted"></div></div>`);
+ $('#saveMainGameImages').onclick=async()=>{
+  const msg=$('#mainGameImageMsg');msg.textContent='Saving…';
+  try{
+   for(const input of document.querySelectorAll('.main-game-image-url')){
+    const g=d.games.find(x=>String(x.game_type).toLowerCase()===input.dataset.gameType);
+    if(!g)throw Error(input.dataset.gameType+' গেমটি Games তালিকায় নেই');
+    const image_url=input.value.trim();
+    if(image_url&&!/^https:\/\//i.test(image_url))throw Error('শুধু HTTPS Image URL দিন');
+    await api('/admin/games',{id:g.id,name:g.name,category_id:g.category_id||'',image_url,game_type:g.game_type,html_content:g.html_content||'',sort_order:g.sort_order||0});
+   }
+   msg.textContent='Aviator ও Super Ace-এর Image URL সংরক্ষণ হয়েছে।';
+  }catch(e){msg.textContent=e.message;}
+ };
+
+
  const slotPosterItems=[
   ['slot-display-super-elements','Super Elements'],['slot-display-azteca-legacy','Azteca Legacy'],['slot-display-flyx','FlyX'],
   ['slot-display-magic-ace','Magic Ace'],['slot-display-circus-joker','Circus Joker'],['slot-display-fortune-gems-3','Fortune Gems 3'],
