@@ -46,19 +46,19 @@ html,body{margin:0;width:100%;height:100%;min-height:100%;overflow:hidden;backgr
 .status{flex:0 0 18px;height:18px;text-align:center;padding-top:2px;font:bold 10px Arial;color:#ffe7a4;text-shadow:0 1px #321;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .win-line{display:block;visibility:hidden;flex:0 0 25px;height:25px;min-height:25px;text-align:center;color:#ffdf72;font:bold 15px Georgia;text-shadow:0 1px 3px #000}
 .win-line.show{visibility:visible}
-.controls{flex:0 0 67px;min-height:67px;display:flex;align-items:center;justify-content:space-around;padding:4px 7px;background:linear-gradient(180deg,#3a2117 0%,#1a120f 42%,#090b12 100%);border-top:3px solid #9b5b2c;border-bottom:1px solid #6d4929;gap:3px;box-shadow:0 -5px 16px #0009}
+.controls{flex:0 0 78px;min-height:78px;display:flex;align-items:center;justify-content:space-around;padding:4px 7px;background:linear-gradient(180deg,#3a2117 0%,#1a120f 42%,#090b12 100%);border-top:3px solid #9b5b2c;border-bottom:1px solid #6d4929;gap:3px;box-shadow:0 -5px 16px #0009}
 .ctrl{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:9px;color:#f6dfa6;min-width:35px;text-shadow:0 1px #000}
 .round{width:27px;height:27px;border-radius:50%;border:1px solid #d7ad61;background:radial-gradient(circle at 35% 25%,#9c7950,#39251a 72%);color:#fff1bd;font-size:16px;font-weight:900;box-shadow:inset 0 1px 3px #fff5,0 2px 3px #000}
 .bet-control{display:flex;flex-direction:row;gap:3px;align-items:center;min-width:98px}
 .bet-value{min-width:34px;text-align:center;display:flex;flex-direction:column;gap:2px}
 .bet-value small{font-size:8px;color:#f6dfa6}.bet-value b{font-size:12px;color:#fff}
-.spin{width:57px;height:57px;flex:0 0 57px;border-radius:50%;border:4px solid #ffdf85;background:radial-gradient(circle at 35% 25%,#fffbd0,#ffc02b 48%,#a64a05 82%);color:#672605;font-weight:1000;font-size:12px;box-shadow:0 0 0 3px #87400c,0 0 18px #ffb32a,inset 0 0 0 2px #fff8}
+.spin{width:70px;height:70px;flex:0 0 70px;border-radius:50%;border:4px solid #ffdf85;background:radial-gradient(circle at 35% 25%,#fffbd0,#ffc02b 48%,#a64a05 82%);color:#672605;font-weight:1000;font-size:12px;box-shadow:0 0 0 3px #87400c,0 0 18px #ffb32a,inset 0 0 0 2px #fff8}
 .spin:disabled,.round:disabled{opacity:.5}
 .balance{text-align:center;background:linear-gradient(90deg,#090b11,#322018,#090b11);padding:5px 4px 2px;color:#f2dca5;font-size:10px;border-top:1px solid #795a30;flex:0 0 24px}
 .balance b{font-size:13px;color:white}
 .note{text-align:center;background:#090b11;color:#b8ad98;font-size:8px;padding:1px 0 3px;flex:0 0 14px}
 @media(min-width:500px){.game{width:min(94vw,500px);height:94vh;height:94svh;margin:auto}.board{width:min(100%,420px)}}
-@media(max-height:590px){.top{height:62px;flex-basis:62px}.stage{padding:4px}.controls{flex-basis:58px;min-height:58px}.spin{width:49px;height:49px;flex-basis:49px}.status{flex-basis:16px;height:16px}.win-line{flex-basis:21px;height:21px}}
+@media(max-height:590px){.top{height:62px;flex-basis:62px}.stage{padding:4px}.controls{flex-basis:72px;min-height:72px}.spin{width:62px;height:62px;flex-basis:62px}.status{flex-basis:16px;height:16px}.win-line{flex-basis:21px;height:21px}}
 @media(prefers-reduced-motion:reduce){.tile.win,.tile.drop,.tile.win:after{animation:none}}
 .free-overlay{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(0,0,0,.78)}
 .free-overlay.show{display:flex}
