@@ -1250,6 +1250,12 @@ function closeGameDepositPopup() {
   document.getElementById('gameDepositPopup')?.remove();
 }
 
+function showAviatorLoading() {
+  const app = document.getElementById('app');
+  if (!app) return;
+  app.innerHTML = '<div class="aviator-loading-screen"><div class="aviator-loading-brand">SPRIBE AVIATOR<span class="aviator-loading-line"></span></div></div>';
+}
+
 function openGame(id) {
   const g = games.find(x => x.id === id);
   if (!g) return;
