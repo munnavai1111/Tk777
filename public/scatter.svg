@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+<defs>
+ <radialGradient id="gold" cx="34%" cy="24%" r="76%"><stop stop-color="#fff9a8"/><stop offset=".22" stop-color="#ffd94c"/><stop offset=".55" stop-color="#f49b08"/><stop offset=".82" stop-color="#b85a00"/><stop offset="1" stop-color="#6d2800"/></radialGradient>
+ <linearGradient id="rim" x2="0" y2="1"><stop stop-color="#fff8a0"/><stop offset=".28" stop-color="#f5bd24"/><stop offset=".58" stop-color="#a84b00"/><stop offset=".82" stop-color="#ffe66b"/><stop offset="1" stop-color="#713000"/></linearGradient>
+ <linearGradient id="letters" x2="0" y2="1"><stop stop-color="#fff56b"/><stop offset=".48" stop-color="#ffbd08"/><stop offset="1" stop-color="#e75a00"/></linearGradient>
+ <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%"><feGaussianBlur in="SourceAlpha" stdDeviation="7"/><feOffset dy="8"/><feComponentTransfer><feFuncA type="linear" slope=".65"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<g filter="url(#shadow)">
+ <circle cx="200" cy="177" r="151" fill="#482000" stroke="#572400" stroke-width="13"/>
+ <circle cx="200" cy="169" r="151" fill="url(#rim)" stroke="#ffe77a" stroke-width="8"/>
+ <circle cx="200" cy="169" r="132" fill="url(#gold)" stroke="#8e3c00" stroke-width="9"/>
+ <circle cx="200" cy="169" r="117" fill="none" stroke="#fff1a0" stroke-width="5" opacity=".85"/>
+ <path d="M105 74 Q200 23 294 75" fill="none" stroke="#fff9c5" stroke-width="10" stroke-linecap="round" opacity=".8"/>
+ <text x="200" y="230" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-size="205" font-weight="900" fill="#fff" stroke="#d68a12" stroke-width="7" paint-order="stroke">＄</text>
+ <path d="M35 278 Q200 248 365 278 L365 348 Q200 378 35 348Z" fill="#5a1700" stroke="#210900" stroke-width="11"/>
+ <text x="200" y="337" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-size="59" font-weight="1000" letter-spacing="-2" fill="url(#letters)" stroke="#a20d00" stroke-width="13" paint-order="stroke" stroke-linejoin="round">SCATTER</text>
+ <text x="200" y="337" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-size="59" font-weight="1000" letter-spacing="-2" fill="url(#letters)" stroke="#fff08a" stroke-width="2" paint-order="stroke">SCATTER</text>
+</g></svg>
