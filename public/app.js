@@ -324,33 +324,42 @@ function toast(t) {
 }
 
 async function init() {
-  try {
-    if (token) me = (await api('/me')).user;
-  } catch {
-    token = '';
-    localStorage.removeItem('tk777_token');
+  // Load independent API resources together instead of waiting for each one in sequence.
+  const [meData, categoriesData, gamesData, homeBannerData, promotionBannerData, supportData, slotDisplayData] = await Promise.all([
+    token ? api('/me').catch(() => null) : Promise.resolve(null),
+    api('/categories').catch(() => null),
+    api('/games').catch(() => null),
+    api('/home-banners').catch(() => null),
+    api('/promotion-banners').catch(() => null),
+    api('/support-settings').catch(() => null),
+    api('/slot-display-images').catch(() => null)
+  ]);
+
+  if (token) {
+    if (meData?.user) me = meData.user;
+    else {
+      token = '';
+      localStorage.removeItem('tk777_token');
+    }
   }
 
-  try {
-    categories = (await api('/categories')).categories;
-    games = (await api('/games')).games;
-    homeBanners = (await api('/home-banners')).banners || [];
-    promotionBanners = (await api('/promotion-banners')).banners || [];
-    supportSettings = await api('/support-settings');
-    demoPaymentImages = supportSettings.demo_payment_images || {bkash:'',nagad:'',rocket:''};
-     withdrawButtonImages = supportSettings.withdraw_button_images || {bkash:'',nagad:'',rocket:''};
-    demoMethodNumbers = supportSettings.demo_numbers || demoMethodNumbers;
-    withdrawDemoIds = supportSettings.withdraw_demo_ids || withdrawDemoIds;
-    depositContent = supportSettings.deposit_content || DEFAULT_DEPOSIT_CONTENT;
-    withdrawContent = supportSettings.withdraw_content || DEFAULT_WITHDRAW_CONTENT;
-    const slotDisplayData = await api('/slot-display-images');
-    slotDisplayImages = slotDisplayData.images || {};
-    slotDisplayHidden = Array.isArray(slotDisplayData.hiddenIds) ? slotDisplayData.hiddenIds : [];
-    const slotNameOverrides = slotDisplayData.nameOverrides || {};
-    displaySlotGames.forEach(g => { if (typeof slotNameOverrides[g.id] === 'string' && slotNameOverrides[g.id].trim()) g.name = slotNameOverrides[g.id].trim(); });
-  } catch (e) {
-    toast(e.message);
-  }
+  categories = categoriesData?.categories || [];
+  games = gamesData?.games || [];
+  homeBanners = homeBannerData?.banners || [];
+  promotionBanners = promotionBannerData?.banners || [];
+
+  if (supportData) supportSettings = supportData;
+  demoPaymentImages = supportSettings.demo_payment_images || {bkash:'',nagad:'',rocket:''};
+  withdrawButtonImages = supportSettings.withdraw_button_images || {bkash:'',nagad:'',rocket:''};
+  demoMethodNumbers = supportSettings.demo_numbers || demoMethodNumbers;
+  withdrawDemoIds = supportSettings.withdraw_demo_ids || withdrawDemoIds;
+  depositContent = supportSettings.deposit_content || DEFAULT_DEPOSIT_CONTENT;
+  withdrawContent = supportSettings.withdraw_content || DEFAULT_WITHDRAW_CONTENT;
+
+  slotDisplayImages = slotDisplayData?.images || {};
+  slotDisplayHidden = Array.isArray(slotDisplayData?.hiddenIds) ? slotDisplayData.hiddenIds : [];
+  const slotNameOverrides = slotDisplayData?.nameOverrides || {};
+  displaySlotGames.forEach(g => { if (typeof slotNameOverrides[g.id] === 'string' && slotNameOverrides[g.id].trim()) g.name = slotNameOverrides[g.id].trim(); });
 
   home();
 }
