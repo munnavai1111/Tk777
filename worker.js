@@ -1276,7 +1276,7 @@ async function route(req, env) {
         cascadeX=comboSteps[Math.min(cascadeCount,3)]*(isFreeSpin?2:1);
         maxCascadeX=Math.max(maxCascadeX,cascadeX);
         frames.push({type:"win",grid:[...grid],wins:found.wins,cascadeX});
-        for(const g of found.groups)totalWin+=(cardPaytable[g.id]?.[g.reels]||0)*g.ways*bet*cascadeX;
+        for(const g of found.groups)totalWin+=(cardPaytable[g.id]?.[g.reels]||0)*g.ways*stake*cascadeX;
         cascadeCount++;
         // Only golden cards that are part of a winning group become wild, in their exact cells.
         const goldenCells=[...new Set(found.groups.flatMap(group=>group.cells))].filter(ix=>String(grid[ix]||"").startsWith("golden"));
