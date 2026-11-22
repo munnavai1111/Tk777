@@ -1294,7 +1294,10 @@ function openGame(id) {
     return;
   }
 
-  if (g.game_type === 'aviator') aviator(g);
+  if (g.game_type === 'aviator') {
+    showAviatorLoading();
+    window.setTimeout(() => aviator(g), 1000);
+  }
   else if (g.game_type === 'superace') superAce(g);
   else if (g.game_type === 'minigame') miniGame(g);
   else if (g.game_type === 'evolution-demo') evolutionDemo(g);
