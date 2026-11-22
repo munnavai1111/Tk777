@@ -535,7 +535,7 @@ async function route(req, env) {
         referrer = await env.DB.prepare("SELECT user_id FROM referral_codes WHERE code=?").bind(referralCode).first();
         if (!referrer) return json({ error: "Referral Link সঠিক নয়" }, 400);
       }
-      const inserted = await env.DB.prepare("INSERT INTO users (username,password,email,password_hash,password_salt,balance,role) VALUES(?,'',?,?,?,?, 'user')").bind(phone, phone, ph, salt, 0).run();
+      const inserted = await env.DB.prepare("INSERT INTO users (username,password,email,password_hash,password_salt,balance,role) VALUES(?,'',?,?,?,0,'user')").bind(phone, phone, ph, salt).run();
       const id = Number(inserted.meta?.last_row_id);
       if (!Number.isSafeInteger(id) || id <= 0) throw new Error("নতুন User ID পাওয়া যায়নি");
       await makeReferralCode(env,id);
@@ -602,7 +602,7 @@ async function route(req, env) {
       const inserted = await env.DB.prepare(`
         INSERT INTO users
         (username,password,email,password_hash,password_salt,balance,role)
-        VALUES(?,'',?,?,?,?,0,'admin')
+        VALUES(?,'',?,?,?,0,'admin')
       `).bind(
         username || "tk777admin",
         adminEmail,
