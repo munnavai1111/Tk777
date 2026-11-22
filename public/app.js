@@ -1214,8 +1214,8 @@ function showGameDepositPopup() {
     <div class="game-deposit-modal" role="dialog" aria-modal="true" aria-labelledby="gameDepositTitle">
       <button class="game-deposit-close" type="button" aria-label="বন্ধ করুন" onclick="closeGameDepositPopup()">×</button>
       <div class="game-deposit-icon">＋</div>
-      <h3 id="gameDepositTitle">এই গেম খেলতে ডিপোজিট পেজে যান</h3>
-      <p>ডিপোজিট পেজে গিয়ে উপলব্ধ Virtual Coin সংক্রান্ত তথ্য দেখুন।</p>
+      <h3 id="gameDepositTitle">এই গেম টা খেলতে ব্যালেন্স যোগ করুন</h3>
+      <p>ডিপোজিট পেজে গিয়ে টাকা জমা ও ব্যালেন্স যোগ করার তথ্য দেখুন।</p>
       <button class="game-deposit-button" type="button" onclick="closeGameDepositPopup();page('deposit')">ডিপোজিট</button>
     </div>`;
   document.body.appendChild(popup);
