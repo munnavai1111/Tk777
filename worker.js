@@ -335,6 +335,8 @@ async function finishCrashSession(env, session) {
 
   if (current < Number(session.crash_multiplier)) return;
 
+  // Ensure the rebate trigger exists before recording a settled Aviator round.
+  await ensureRebateSchema(env);
   await env.DB.batch([
     env.DB.prepare(`
       INSERT OR IGNORE INTO game_rounds
@@ -1777,6 +1779,8 @@ async function route(req, env) {
 
       const payout = Math.round(Number(round.bet_amount) * current * 100) / 100;
 
+      // Ensure the rebate trigger exists before recording a cashed-out Aviator round.
+      await ensureRebateSchema(env);
       await env.DB.batch([
         env.DB.prepare(`
           UPDATE crash_rounds
