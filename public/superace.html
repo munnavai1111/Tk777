@@ -315,7 +315,7 @@ async function play(){
  const stake=bet;
  if(stake>1000000){$('status').textContent='সর্বোচ্চ বেট ১,০০,০০০';return}
  if(freeSpins<=0&&balance<stake){$('status').textContent='পর্যাপ্ত ব্যালেন্স নেই';auto=false;return}
- busy=true;$('spin').disabled=true;update();totalWin=0;$('win').textContent='';$('win').parentElement.classList.remove('show');$('status').textContent='Spin';
+ busy=true;$('spin').disabled=true;update();totalWin=0;$('cascadeWin').textContent='0.00';$('win').textContent='0.00';$('win').parentElement.classList.remove('show');$('status').textContent='Spin';
  try{
   const pending=request('/play',{gameId:gameId,betAmount:bet,betMultiplier:1,freeSpin:freeSpins>0,requestId}).then(value=>({value}),error=>({error}));
   // Keep the landed board untouched until the server returns the real result.
