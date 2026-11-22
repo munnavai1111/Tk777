@@ -147,6 +147,20 @@ const uid = () => crypto.randomUUID();
 const rand = () => crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296;
 const enc = new TextEncoder();
 
+/* Cache successful schema setup within each Worker isolate to avoid repeating D1 migrations on every API call. */
+const tk777SchemaInitPromises = new Map();
+async function ensureSchemaOnce(key, initializer, env) {
+  let pending = tk777SchemaInitPromises.get(key);
+  if (!pending) {
+    pending = Promise.resolve().then(() => initializer(env)).catch(error => {
+      tk777SchemaInitPromises.delete(key);
+      throw error;
+    });
+    tk777SchemaInitPromises.set(key, pending);
+  }
+  return pending;
+}
+
 /* COMPATIBILITY LAYER: preserve the legacy integer user IDs and old records. */
 async function ensureLegacyCompatibleSchema(env) {
   const info = await env.DB.prepare("PRAGMA table_info(users)").all();
@@ -203,7 +217,7 @@ async function ensureLegacyCompatibleSchema(env) {
 
 /* INTERNAL MESSAGES */
 async function ensureInternalMessageSchema(env){await env.DB.prepare("CREATE TABLE IF NOT EXISTS internal_messages (id TEXT PRIMARY KEY,user_id TEXT NOT NULL,title TEXT NOT NULL,body TEXT NOT NULL,type TEXT NOT NULL DEFAULT 'info',source_key TEXT UNIQUE,read_at TEXT,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)").run();}
-async function createInternalMessage(env,userId,title,body,type="info",sourceKey=null){await ensureInternalMessageSchema(env);await env.DB.prepare("INSERT OR IGNORE INTO internal_messages(id,user_id,title,body,type,source_key) VALUES(?,?,?,?,?,?)").bind(uid(),userId,String(title||"বার্তা").slice(0,100),String(body||"").slice(0,500),String(type||"info").slice(0,30),sourceKey).run();}
+async function createInternalMessage(env,userId,title,body,type="info",sourceKey=null){await ensureSchemaOnce('internal_messages', ensureInternalMessageSchema, env);await env.DB.prepare("INSERT OR IGNORE INTO internal_messages(id,user_id,title,body,type,source_key) VALUES(?,?,?,?,?,?)").bind(uid(),userId,String(title||"বার্তা").slice(0,100),String(body||"").slice(0,500),String(type||"info").slice(0,30),sourceKey).run();}
 
 /* REBATE: 1 paisa per 1 taka wagered; display amounts as demo taka */
 async function ensureRebateSchema(env){
@@ -336,7 +350,7 @@ async function finishCrashSession(env, session) {
   if (current < Number(session.crash_multiplier)) return;
 
   // Ensure the rebate trigger exists before recording a settled Aviator round.
-  await ensureRebateSchema(env);
+  await ensureSchemaOnce('rebate', ensureRebateSchema, env);
   await env.DB.batch([
     env.DB.prepare(`
       INSERT OR IGNORE INTO game_rounds
@@ -519,7 +533,7 @@ async function route(req, env) {
     return new Response(null, { headers: cors });
   }
 
-  if (p.startsWith("/api/")) await ensureLegacyCompatibleSchema(env);
+  if (p.startsWith("/api/") && p !== "/api/health") await ensureSchemaOnce('legacy', ensureLegacyCompatibleSchema, env);
 
   if (p === "/api/health") {
     return json({ ok: true, site: "TK777", database: "connected" });
@@ -540,7 +554,7 @@ async function route(req, env) {
     if (password !== confirmPassword) return json({ error: "পাসওয়ার্ড ও কনফার্ম পাসওয়ার্ড মিলছে না" }, 400);
     const salt = uid(), ph = await passHash(password, salt);
     try {
-      await ensureReferralSchema(env);
+      await ensureSchemaOnce('referral', ensureReferralSchema, env);
       const referralCode = String(body.referralCode || "").trim().toUpperCase();
       let referrer = null;
       if (referralCode) {
