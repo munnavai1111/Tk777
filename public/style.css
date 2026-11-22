@@ -1582,3 +1582,10 @@ body{background:#063b39}
 @media(prefers-reduced-motion:reduce){
   .aviator-stage::before{transition:none}
 }
+
+/* Original TK777 live-table game artwork */
+.game .live-game-cover{height:100px;display:flex;flex-direction:column;justify-content:center;gap:5px;color:#ffe9b0;border-bottom:1px solid rgba(255,214,130,.35);text-shadow:0 2px 8px #000}
+.game .live-game-cover span{font-size:38px;line-height:1}
+.game .live-game-cover small{font-size:8px;letter-spacing:1.2px;font-weight:800;color:#fff2ce}
+.game .live-game-cover.live-roulette{background:radial-gradient(circle at 50% 35%,#9b252d 0,#40151f 42%,#101b1c 100%)}
+.game .live-game-cover.live-cards{background:radial-gradient(circle at 50% 35%,#246b55 0,#123c36 48%,#101b1c 100%)}
