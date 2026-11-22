@@ -1120,14 +1120,24 @@ async function route(req, env) {
         ["royal-keno", "Royal Keno", "lottery", 13],
         ["live-roulette", "Live Roulette", "live", 14],
         ["live-blackjack", "Live Blackjack", "live", 15],
-        ["live-baccarat", "Live Baccarat", "live", 16]
+        ["live-baccarat", "Live Baccarat", "live", 16],
+        ["evo-crazy-time", "Crazy Time", "live", 17, "evolution-demo"],
+        ["evo-funky-time", "Funky Time", "live", 18, "evolution-demo"],
+        ["evo-disco-balls", "Disco Balls", "live", 19, "evolution-demo"],
+        ["evo-mega-ball", "Mega Ball", "live", 20, "evolution-demo"],
+        ["evo-dream-catcher", "Dream Catcher", "live", 21, "evolution-demo"],
+        ["evo-lightning-roulette", "Lightning Roulette", "live", 22, "evolution-demo"],
+        ["evo-monopoly-live", "MONOPOLY Live", "live", 23, "evolution-demo"],
+        ["evo-deal-or-no-deal", "Deal or No Deal Live", "live", 24, "evolution-demo"],
+        ["evo-crazy-coin-flip", "Crazy Coin Flip", "live", 25, "evolution-demo"],
+        ["evo-xxx-lightning", "XXXtreme Lightning Roulette", "live", 26, "evolution-demo"]
       ];
-      for (const [id, name, category, order] of miniGames) {
+      for (const [id, name, category, order, gameType] of miniGames) {
         await env.DB.prepare(`
           INSERT OR IGNORE INTO games
           (id,name,category_id,image_url,game_type,sort_order)
-          VALUES(?,?,?,'','minigame',?)
-        `).bind(id, name, category, order).run();
+          VALUES(?,?,?,'',?,?)
+        `).bind(id, name, category, gameType || "minigame", order).run();
       }
 
       const rows = await env.DB.prepare(`
