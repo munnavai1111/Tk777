@@ -536,6 +536,7 @@ async function route(req, env) {
   if (p.startsWith("/api/") && p !== "/api/health") await ensureSchemaOnce('legacy', ensureLegacyCompatibleSchema, env);
 
   if (p === "/api/health") {
+    await env.DB.prepare("SELECT 1 AS ok").first();
     return json({ ok: true, site: "TK777", database: "connected" });
   }
 
