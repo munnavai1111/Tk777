@@ -1210,7 +1210,18 @@ async function route(req, env) {
       const bet = isFreeSpin ? Number(saved.bet_amount) : Number(body.betAmount);
       const betMultiplier = isFreeSpin ? Number(saved.bet_multiplier) : Number(body.betMultiplier || 1);
       if (!Number.isSafeInteger(bet) || bet < 1 || ![1,2,3,5].includes(betMultiplier) || bet * betMultiplier > 1000000) return json({ error: "বেট ১ থেকে ১০,০০,০০০ ক্রেডিটের মধ্যে দিন" }, 400);
-      const cards=[{id:"ace",rate:5},{id:"king",rate:4},{id:"queen",rate:3.5},{id:"jack",rate:3},{id:"spade",rate:2},{id:"heart",rate:2},{id:"diamond",rate:2},{id:"club",rate:2},{id:"scatter",rate:0}];
+      const cards=[{id:"ace"},{id:"king"},{id:"queen"},{id:"jack"},{id:"spade"},{id:"heart"},{id:"diamond"},{id:"club"},{id:"scatter"}];
+      // Super Ace standard paytable: payout multiplier by matching reels (3/4/5).
+      const cardPaytable={
+        ace:{3:0.50,4:1.50,5:2.50},
+        king:{3:0.40,4:1.20,5:2.00},
+        queen:{3:0.30,4:0.90,5:1.50},
+        jack:{3:0.20,4:0.60,5:1.00},
+        spade:{3:0.10,4:0.30,5:0.50},
+        heart:{3:0.10,4:0.30,5:0.50},
+        diamond:{3:0.05,4:0.15,5:0.25},
+        club:{3:0.05,4:0.15,5:0.25}
+      };
       // Ordinary wild cards never drop. A winning yellow K creates a temporary wild.
       const weights=[.7,.8,.9,1,1.15,1.15,1.15,1.15,.10];
       const pickBaseCard=()=>{const total=weights.reduce((x,y)=>x+y,0);let v=rand()*total;for(let i=0;i<cards.length;i++){v-=weights[i];if(v<=0)return cards[i].id;}return "ace";};
@@ -1265,7 +1276,7 @@ async function route(req, env) {
         cascadeX=comboSteps[Math.min(cascadeCount,3)]*(isFreeSpin?2:1);
         maxCascadeX=Math.max(maxCascadeX,cascadeX);
         frames.push({type:"win",grid:[...grid],wins:found.wins,cascadeX});
-        for(const g of found.groups)totalWin+=g.rate*Math.max(1,g.reels-2)*g.ways*bet*cascadeX*.0035;
+        for(const g of found.groups)totalWin+=(cardPaytable[g.id]?.[g.reels]||0)*g.ways*bet*cascadeX;
         cascadeCount++;
         // Only golden cards that are part of a winning group become wild, in their exact cells.
         const goldenCells=[...new Set(found.groups.flatMap(group=>group.cells))].filter(ix=>String(grid[ix]||"").startsWith("golden"));
