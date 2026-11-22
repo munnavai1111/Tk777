@@ -559,6 +559,12 @@ const displaySlotGames = [
 
 // Verified game artwork. Admin-uploaded artwork takes priority over these defaults.
 const TK777_SLOT_LOGOS = {
+  'slot-display-super-elements': 'https://fachaigaming.com/uploads/d5b58980-9bdc-4e61-9584-bc01d71e1ddd-22055_feature-front_en.webp',
+  'slot-display-flyx': 'https://www.fluffyspins.com/images/local/misc/FlyXSlotCrashStyleCasinoGame.jpg',
+  'slot-display-treasures-of-aztec': 'https://www.casinoplus.com.ph/cp-games/game/pg/treasures-of-aztec/icon.png',
+  'slot-display-anubis-wrath': 'https://casinocompendium.com/wp-content/uploads/2024/05/PG-Soft-releases-Anubis-Wrath.jpg',
+  'slot-display-mahjong-ways-2': 'https://www.casinomeerkat.com/_next/image?q=100&url=https%3A%2F%2Fv2-prod-supabase.casinomeerkat.com%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fimages%2Fmahjong-ways-2_demo_slot.webp%3Fv%3D1750968003876&w=1920',
+  'slot-display-wild-bandito': 'https://www.casinos.com/cdn-cgi/image/f%3Dwebp%2Cq%3D86%2Cg%3Dauto/https%3A/objects.kaxmedia.com/genesis/wild-bandito-slot.jpg?v=d254865b199cf6775b2b2a9f0027a69e9a3cb105',
   'slot-display-circus-joker': 'https://www.ph-golden-panda.com/casino/images/circus-joker-4096.webp',
   'slot-display-fortune-gems-3': 'https://www.jiligames.shop/Games%20_%20JILI%20Games_files/bPW0fMkqGM6aXc0p4UeegcJp6kGI1L1vvYwqe0oa.png',
   'slot-display-super-ace-ii': 'https://www.ph-royal-panda.com/casino/images/super-ace-ii.webp',
