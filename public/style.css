@@ -1637,3 +1637,10 @@ body{background:#063b39}
 .game.live-game-tall>small{display:block;color:#f6d66d;font-size:10px;letter-spacing:1.5px;padding:2px 4px 9px}
 .game.live-game-tall .favorite-toggle{z-index:2}
 @media(max-width:360px){.games:has(.live-game-tall){gap:8px}.game.live-game-tall .live-game-cover{height:148px;min-height:148px}}
+
+
+/* Live games: compact image-sized cards in a four-column grid. */
+.live-games-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:7px}
+.live-games-grid .game img,.live-games-grid .game .placeholder{height:clamp(58px,18vw,82px);aspect-ratio:1.25;object-fit:cover}
+.live-games-grid .game strong{font-size:11px;padding:6px 2px;line-height:1.2;min-height:0}
+.live-games-grid .game small{font-size:8px;padding:0 2px 7px}
