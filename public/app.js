@@ -1200,10 +1200,51 @@ function logout() {
 
 /* GAME ROUTING */
 
+let gameDepositPopupTimer = null;
+
+function showGameDepositPopup() {
+  const existing = document.getElementById('gameDepositPopup');
+  if (existing) existing.remove();
+  if (gameDepositPopupTimer) clearTimeout(gameDepositPopupTimer);
+
+  const popup = document.createElement('div');
+  popup.id = 'gameDepositPopup';
+  popup.className = 'game-deposit-overlay';
+  popup.innerHTML = `
+    <div class="game-deposit-modal" role="dialog" aria-modal="true" aria-labelledby="gameDepositTitle">
+      <button class="game-deposit-close" type="button" aria-label="বন্ধ করুন" onclick="closeGameDepositPopup()">×</button>
+      <div class="game-deposit-icon">＋</div>
+      <h3 id="gameDepositTitle">এই গেম খেলতে ডিপোজিট পেজে যান</h3>
+      <p>ডিপোজিট পেজে গিয়ে উপলব্ধ Virtual Coin সংক্রান্ত তথ্য দেখুন।</p>
+      <button class="game-deposit-button" type="button" onclick="closeGameDepositPopup();page('deposit')">ডিপোজিট</button>
+    </div>`;
+  document.body.appendChild(popup);
+  gameDepositPopupTimer = setTimeout(closeGameDepositPopup, 4000);
+}
+
+function closeGameDepositPopup() {
+  if (gameDepositPopupTimer) {
+    clearTimeout(gameDepositPopupTimer);
+    gameDepositPopupTimer = null;
+  }
+  document.getElementById('gameDepositPopup')?.remove();
+}
+
 function openGame(id) {
-  isPlayingGame = true;
   const g = games.find(x => x.id === id);
   if (!g) return;
+
+  const gameName = String(g.name || '');
+  const gameType = String(g.game_type || '').toLowerCase();
+  const isAviator = gameType === 'aviator' || /aviator/i.test(gameName);
+  const isSuperAce = gameType === 'superace' || /super\\s*ace/i.test(gameName);
+  if (!isAviator && !isSuperAce) {
+    isPlayingGame = false;
+    showGameDepositPopup();
+    return;
+  }
+
+  isPlayingGame = true;
 
   if (!me) {
     showAuth();
