@@ -383,11 +383,17 @@ async function getCrashSession(env, gameId) {
   `).bind(gameId).first();
 
   if (s) {
-    await finishCrashSession(env, s);
+    const current = Math.exp(
+      Math.max(0, Date.now() - Number(s.start_ms)) / 12000
+    );
 
-    s = await env.DB.prepare(`
-      SELECT * FROM crash_sessions WHERE id=?
-    `).bind(s.id).first();
+    // Do not issue another D1 read while the round is still running.
+    if (current >= Number(s.crash_multiplier)) {
+      await finishCrashSession(env, s);
+      s = await env.DB.prepare(`
+        SELECT * FROM crash_sessions WHERE id=?
+      `).bind(s.id).first();
+    }
 
     if (s && s.status === "active") return s;
   }
@@ -471,17 +477,10 @@ async function getCrashSession(env, gameId) {
 }
 
 async function crashState(env, gameId) {
-  let s = await getCrashSession(env, gameId);
+  // getCrashSession already finalizes a round only when its crash point is reached.
+  const s = await getCrashSession(env, gameId);
 
   if (!s) throw new Error("Crash session তৈরি করা যায়নি");
-
-  if (s.status === "active") {
-    await finishCrashSession(env, s);
-  }
-
-  s = await env.DB.prepare(`
-    SELECT * FROM crash_sessions WHERE id=?
-  `).bind(s.id).first();
 
   const now = Date.now();
   const startMs = Number(s.start_ms);
@@ -1702,21 +1701,31 @@ async function route(req, env) {
         return json({ error: "রাউন্ড পাওয়া যায়নি" }, 404);
       }
 
-      const state = await crashState(env, round.game_id);
+      // A bet-status check must not rebuild the full global game state.
+      if (round.session_id) {
+        const session = await env.DB.prepare(
+          "SELECT * FROM crash_sessions WHERE id=?"
+        ).bind(round.session_id).first();
+
+        if (session && session.status === "active") {
+          await finishCrashSession(env, session);
+        }
+      }
 
       const latest = await env.DB.prepare(`
-        SELECT * FROM crash_rounds WHERE id=?
+        SELECT status,payout,cashout_multiplier
+        FROM crash_rounds WHERE id=?
       `).bind(roundId).first();
 
-      const bal = await env.DB.prepare(`
+      const bal = latest.status === "active" ? null : await env.DB.prepare(`
         SELECT balance FROM users WHERE id=?
       `).bind(user.id).first();
 
       return json({
-        ...state,
         betStatus: latest.status,
         payout: latest.payout || 0,
-        balance: bal.balance,
+        multiplier: latest.cashout_multiplier || round.crash_multiplier,
+        ...(bal ? { balance: bal.balance } : {}),
         roundId
       });
     }
