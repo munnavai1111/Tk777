@@ -494,7 +494,12 @@ async function route(req, env) {
       if(referrer && referrer.user_id!==id) await env.DB.prepare("INSERT OR IGNORE INTO referrals(referred_user_id,referrer_user_id) VALUES(?,?)").bind(id,referrer.user_id).run();
       return await loginUser(id, env);
     } catch (e) {
-      return json({ error: "এই মোবাইল নম্বর দিয়ে অ্যাকাউন্ট আগে থেকেই খোলা হয়েছে" }, 409);
+      const message = String(e?.message || e || "");
+      console.error("TK777 registration failed", { message });
+      if (/UNIQUE constraint failed: users\.(username|email)/i.test(message)) {
+        return json({ error: "এই মোবাইল নম্বর দিয়ে অ্যাকাউন্ট আগে থেকেই খোলা হয়েছে" }, 409);
+      }
+      return json({ error: "রেজিস্ট্রেশন সম্পন্ন হয়নি। Database সংযোগ বা প্রয়োজনীয় টেবিল পরীক্ষা করতে হবে।" }, 500);
     }
   }
 
