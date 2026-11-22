@@ -482,7 +482,7 @@ function home() {
     <div class="section">
       <div class="section-head">
         <span>🔥 HOT GAMES</span>
-        <small>${games.length + displaySlotGames.length} GAMES</small>
+        <small>${games.filter(g => !isLiveGame(g)).length + displaySlotGames.length} GAMES</small>
       </div>
       <div class="games">${homeGamesWithSlots().map(g => g.id.startsWith('slot-display-') ? displaySlotCard(g) : gameCard(g)).join('')}</div>
     </div>
@@ -564,7 +564,7 @@ function gameCard(g) {
     ? `<div class="placeholder live-game-cover ${live[2]}"><span>${live[0]}</span><small>${esc(live[1])}</small></div>`
     : `<div class="placeholder">${type === 'aviator' ? '✈️' : type === 'superace' ? '🂡' : '🎮'}</div>`;
   return `
-    <button class="game ${type === 'evolution-demo' ? 'live-game-tall' : ''}" onclick="openGame('${esc(g.id)}')">
+    <button class="game" onclick="openGame('${esc(g.id)}')">
       <span class="favorite-toggle"
         onclick="event.stopPropagation();toggleFavorite('${esc(g.id)}',this)">
         ${favoriteIds().includes(g.id) ? '♥' : '♡'}
@@ -654,8 +654,14 @@ function displaySlotCard(g) {
   return '<div class="game display-slot-game" aria-label="' + esc(g.name) + '"><div class="slot-art">' + art + '</div><strong>' + esc(g.name) + '</strong><small>SLOT GAME</small></div>';
 }
 
+function isLiveGame(g) {
+  const type = String(g?.game_type || '').toLowerCase();
+  const id = String(g?.id || '').toLowerCase();
+  return type === 'live' || type === 'evolution-demo' || id.startsWith('evo-') || id.startsWith('live-');
+}
+
 function homeGamesWithSlots() {
-  const list = [...games];
+  const list = games.filter(g => !isLiveGame(g));
   const at = list.findIndex(g => /super\s*ace/i.test(String(g.name || '')));
   list.splice(at < 0 ? list.length : at + 1, 0, ...displaySlotGames.filter(g => !slotDisplayHidden.includes(g.id)));
   return list;
@@ -663,10 +669,13 @@ function homeGamesWithSlots() {
 function filterGames(id) {
   isPlayingGame = false;
   const c = categories.find(x => x.id === id);
-  const isSlotsCategory = /slot/i.test(String(c?.name || ''));
+  const categoryName = String(c?.name || '');
+  const isSlotsCategory = /slot/i.test(categoryName);
+  const isLiveCategory = /live/i.test(categoryName);
+  const categoryGames = games.filter(g => g.category_id === id);
   const list = id === 'favorites'
-    ? games.filter(g => favoriteIds().includes(g.id))
-    : [...games.filter(g => g.category_id === id), ...(isSlotsCategory ? displaySlotGames.filter(g => !slotDisplayHidden.includes(g.id)) : [])];
+    ? games.filter(g => favoriteIds().includes(g.id) && !isLiveGame(g))
+    : [...categoryGames.filter(g => isLiveCategory ? isLiveGame(g) : !isLiveGame(g)), ...(isSlotsCategory ? displaySlotGames.filter(g => !slotDisplayHidden.includes(g.id)) : [])];
 
   stopCrashMonitor();
 
