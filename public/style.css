@@ -1624,3 +1624,16 @@ body{background:#063b39}
 .evo-official-link{display:block;text-align:center;text-decoration:none;margin-top:10px}
 .evo-demo-notice .evo-official-link{color:#fff}
 @media(max-width:480px){.evo-video-frame-wrap{height:68vh;min-height:380px}}
+
+
+/* Tall two-column Evolution live game cards in the Live category */
+.games:has(.live-game-tall){grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.game.live-game-tall{min-height:214px;border-radius:14px;border:1px solid rgba(246,201,75,.48);background:linear-gradient(160deg,#123f3a,#071f25);box-shadow:0 5px 14px #0004}
+.game.live-game-tall .live-game-cover{height:166px;min-height:166px;gap:12px;padding:14px 7px;position:relative;overflow:hidden;border-bottom:1px solid rgba(246,201,75,.35)}
+.game.live-game-tall .live-game-cover:before{content:"";position:absolute;width:145px;height:145px;border:1px solid #f6c94b44;border-radius:50%;box-shadow:0 0 0 12px #f6c94b0b,0 0 0 26px #f6c94b08}
+.game.live-game-tall .live-game-cover span{font-size:56px;z-index:1;filter:drop-shadow(0 5px 8px #0008)}
+.game.live-game-tall .live-game-cover small{z-index:1;font-size:12px;line-height:1.25;letter-spacing:1.4px;font-weight:900;text-align:center;padding:0 4px;color:#fff4cf}
+.game.live-game-tall strong{font-size:14px;line-height:1.3;min-height:42px;padding:8px 5px 2px}
+.game.live-game-tall>small{display:block;color:#f6d66d;font-size:10px;letter-spacing:1.5px;padding:2px 4px 9px}
+.game.live-game-tall .favorite-toggle{z-index:2}
+@media(max-width:360px){.games:has(.live-game-tall){gap:8px}.game.live-game-tall .live-game-cover{height:148px;min-height:148px}}
