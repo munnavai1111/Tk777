@@ -685,7 +685,7 @@ function filterGames(id) {
         <span>${esc(c?.name || 'Games')}</span>
         <small>${list.length} GAMES</small>
       </div>
-      <div class="games">
+      <div class="games${isLiveCategory ? " live-games-grid" : ""}">
         ${list.map(g => g.id.startsWith('slot-display-') ? displaySlotCard(g) : gameCard(g)).join('') || '<p class="muted">এই ক্যাটাগরিতে এখনো গেম যোগ করা হয়নি।</p>'}
       </div>
       <button class="secondary" onclick="home()">ফিরে যান</button>
