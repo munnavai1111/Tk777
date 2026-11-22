@@ -583,7 +583,14 @@ const TK777_SLOT_LOGOS = {
   'slot-display-lucky-neko': 'https://slotcatalog.com/userfiles/image/games/PG-Soft/19433/Lucky-Neko-1_sq.jpg',
   'slot-display-dragon-hatch': 'https://slotslaunch.nyc3.digitaloceanspaces.com/18193/dragon-hatch.jpg',
   'slot-display-ganesha-fortune': 'https://www.play-mx.com/casino/images/pgs-ganesha-fortune.webp',
-  'slot-display-mahjong-ways': 'https://media.leovegas.com/images/games/mahjong-ways/mahjong-ways-tile-auth.jpg?tr=w-800'
+  'slot-display-mahjong-ways': 'https://media.leovegas.com/images/games/mahjong-ways/mahjong-ways-tile-auth.jpg?tr=w-800',
+  'slot-display-azteca-legacy': 'https://auth.spindex.net/storage/v1/object/public/slot-thumbnails/azteca-legacy.webp',
+  'slot-display-magic-ace': 'https://assets.socino.com/game/magic-ace-66e93a311c73e24c12d4150e/magic-ace-thumb-en.webp',
+  'slot-display-dragon-gems': 'https://img.rationalcdn.com/starsweb/prod/43384_0.png',
+  'slot-display-golden-bank': 'https://wbgame.jlfafafa3.com/All-In-One/production/img/jiliPlusPlayer/games/CzjCNYAOnopzNiDJgdfg7I6ZqWoO2bwqxGRMV8t5.png',
+  'slot-display-party-night': 'https://www.jiligames.games/wp-content/uploads/2022/07/Party-Night.png',
+  'slot-display-lucky-goldbricks': 'https://wbgame.jlfafafa3.com/All-In-One/production/img/jiliPlusPlayer/games/wb6WqSCuNMSdhjDBksI5jFNlUPDuJiOsT5nO0UCB.png',
+  'slot-display-ways-of-the-qilin': 'https://surebet247.com/static/img/icons/PG%20Soft/ways-of-the-qilin.png'
 };
 
 function displaySlotCard(g) {
