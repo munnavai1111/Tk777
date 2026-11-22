@@ -548,16 +548,16 @@ function gameCard(g) {
       ? TK777_GAME_COVER_ART.superace
       : '';
   const liveCoverArt = {
-    'evo-crazy-time': 'https://www.onecasino.com/img/screenshots/crazytime_20034_6_1000x660.jpg',
-    'evo-funky-time': 'https://rollbit.com/game-images/evolution_FunkyTime.webp',
-    'evo-disco-balls': 'https://discoballs.live/images/disco-balls-casino.webp',
-    'evo-mega-ball': 'https://slotcatalog.com/userfiles/image/games/Evolution-Gaming/16426/Mega-Ball-Evolution-Gaming-hot_cold.jpg',
-    'evo-dream-catcher': 'https://monkeytilt.com/images/media/images/games/evo_livedreamcatcher.png?f=webp&q=60&w=400',
-    'evo-lightning-roulette': 'https://www.casinobarcelona.es/v2005/img/logos/evolution/EVO-ruleta-lightning.webp?v=75',
-    'evo-monopoly-live': 'https://smartcasinoguide.com/app/uploads/2020/04/monopoly-live-logo.png',
-    'evo-deal-or-no-deal': 'https://slotcatalog.com/userfiles/image/games/Evolution-Gaming/12568/Deal-Or-No-Deal-Live-1.jpg',
-    'evo-crazy-coin-flip': 'https://mediumrare.imgix.net/cdd56420162814d3bba92e4060c6b3f1cf6c89ca9eb4485f2ba3755c1cc78635?q=85',
-    'evo-xxx-lightning': 'https://cdn.onlinecasinoground.nl/2022/04/xxxtreme-lightning-roulette-logo-510px.jpg'
+    'evo-crazy-time': 'https://games.evolution.com/wp-content/uploads/2023/03/crazy-time-logo.svg',
+    'evo-funky-time': 'https://games.evolution.com/wp-content/uploads/2023/05/funky_time_logo_eng_2023_01.svg',
+    'evo-disco-balls': 'https://games.evolution.com/wp-content/uploads/2026/07/disco_balls_ui_logo_eng_2026_05.svg',
+    'evo-mega-ball': 'https://games.evolution.com/wp-content/uploads/2023/03/mega-ball-logo.svg',
+    'evo-dream-catcher': 'https://games.evolution.com/wp-content/uploads/2023/03/dream-catcher-logo.svg',
+    'evo-lightning-roulette': 'https://games.evolution.com/wp-content/uploads/2023/03/lightning-roulette-logo.svg',
+    'evo-monopoly-live': 'https://games.evolution.com/wp-content/uploads/2023/03/monopoly-live-game-logo.png',
+    'evo-deal-or-no-deal': 'https://games.evolution.com/wp-content/uploads/2023/03/deal-or-no-deal-logo.svg',
+    'evo-crazy-coin-flip': 'https://games.evolution.com/wp-content/uploads/2023/05/crazy-coin-flip-logo-s-1.png',
+    'evo-xxx-lightning': 'https://games.evolution.com/wp-content/uploads/2023/03/xxxtreme-lightning-roulette-logo.svg'
   };
   const cover = g.image_url || officialCover || liveCoverArt[id] || '';
   const placeholder = live
@@ -570,7 +570,7 @@ function gameCard(g) {
         ${favoriteIds().includes(g.id) ? '♥' : '♡'}
       </span>
       ${cover
-        ? `<img src="${esc(cover)}" alt="${esc(g.name)}" loading="lazy" onerror="this.style.display='none'">`
+        ? `<img ${live ? 'class="live-game-logo"' : ''} src="${esc(cover)}" data-fallback="${esc(liveCoverArt[id] || '')}" alt="${esc(g.name)}" loading="lazy" onerror="if(this.dataset.fallback && this.src!==this.dataset.fallback){this.src=this.dataset.fallback}else{this.style.display='none'}">`
         : placeholder}
       <strong>${esc(g.name)}</strong>
       <small>${live ? 'LIVE CASINO' : type === 'aviator' ? 'CRASH GAME' : type === 'superace' ? 'CARD GAME' : 'ARCADE GAME'}</small>
