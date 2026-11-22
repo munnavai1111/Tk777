@@ -356,7 +356,21 @@ async function init() {
   depositContent = supportSettings.deposit_content || DEFAULT_DEPOSIT_CONTENT;
   withdrawContent = supportSettings.withdraw_content || DEFAULT_WITHDRAW_CONTENT;
 
-  slotDisplayImages = slotDisplayData?.images || {};
+  slotDisplayImages = {...(slotDisplayData?.images || {})};
+  // Use the original PG Soft title logos unless the admin has supplied a custom URL.
+  const originalPgLogos = {
+    'slot-display-fortune-rabbit': 'https://res.cloudinary.com/dqwcjnzgz/image/upload/f_auto/spacecas/games/pg-soft/fortune-rabbit-logo.png',
+    'slot-display-fortune-ox': 'https://res.cloudinary.com/dqwcjnzgz/image/upload/f_auto/spacecas/games/pg-soft/fortune-ox-logo.png',
+    'slot-display-treasures-of-aztec': 'https://res.cloudinary.com/dqwcjnzgz/image/upload/f_auto/spacecas/games/pg-soft/treasures-of-aztec-logo.png'
+  };
+  const previousPgArtwork = {
+    'slot-display-fortune-rabbit': 'https://apostas.gazetaesportiva.com/static/wp/imagem-destaque-fortune-rabbit-2.webp',
+    'slot-display-fortune-ox': 'https://es-mx.fortune-ox.online/image/fortune-ox-logo-poster.webp',
+    'slot-display-treasures-of-aztec': 'https://www.casinoplus.com.ph/cp-games/game/pg/treasures-of-aztec/icon.png'
+  };
+  Object.entries(originalPgLogos).forEach(([id, url]) => {
+    if (!slotDisplayImages[id] || slotDisplayImages[id] === previousPgArtwork[id]) slotDisplayImages[id] = url;
+  });
   slotDisplayHidden = Array.isArray(slotDisplayData?.hiddenIds) ? slotDisplayData.hiddenIds : [];
   const slotNameOverrides = slotDisplayData?.nameOverrides || {};
   displaySlotGames.forEach(g => { if (typeof slotNameOverrides[g.id] === 'string' && slotNameOverrides[g.id].trim()) g.name = slotNameOverrides[g.id].trim(); });
