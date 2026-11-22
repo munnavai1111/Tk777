@@ -1226,35 +1226,35 @@ const MINI_GAME_INFO = {
 function evolutionDemo(g) {
   stopCrashMonitor();
   const demos = {
-    'evo-crazy-time': ['🎡', 'BONUS WHEEL', 'crazy'],
-    'evo-funky-time': ['🪩', 'FUNKY BONUS', 'funky'],
-    'evo-disco-balls': ['🪩', 'DISCO BALLS', 'disco'],
-    'evo-mega-ball': ['🔮', 'MEGA BALL', 'mega'],
-    'evo-dream-catcher': ['🌙', 'DREAM CATCHER', 'dream'],
-    'evo-lightning-roulette': ['⚡', 'LIGHTNING ROULETTE', 'lightning'],
-    'evo-monopoly-live': ['🏙️', 'MONOPOLY LIVE', 'monopoly'],
-    'evo-deal-or-no-deal': ['💼', 'DEAL OR NO DEAL', 'deal'],
-    'evo-crazy-coin-flip': ['🪙', 'CRAZY COIN FLIP', 'coin'],
-    'evo-xxx-lightning': ['⚡', 'XXXTREME LIGHTNING', 'lightning']
+    'evo-crazy-time': ['🎡', 'BONUS WHEEL', 'crazy', '/live-casino/game-shows/crazy-time/'],
+    'evo-funky-time': ['🪩', 'FUNKY BONUS', 'funky', '/live-casino/game-shows/funky-time/'],
+    'evo-disco-balls': ['🪩', 'DISCO BALLS', 'disco', '/live-casino/game-shows/disco-balls/'],
+    'evo-mega-ball': ['🔮', 'MEGA BALL', 'mega', '/live-casino/game-shows/mega-ball/'],
+    'evo-dream-catcher': ['🌙', 'DREAM CATCHER', 'dream', '/live-casino/game-shows/dream-catcher/'],
+    'evo-lightning-roulette': ['⚡', 'LIGHTNING ROULETTE', 'lightning', '/live-casino/live-roulette/lightning-roulette/'],
+    'evo-monopoly-live': ['🏙️', 'MONOPOLY LIVE', 'monopoly', '/live-casino/game-shows/monopoly-live/'],
+    'evo-deal-or-no-deal': ['💼', 'DEAL OR NO DEAL', 'deal', '/live-casino/game-shows/deal-or-no-deal-live/'],
+    'evo-crazy-coin-flip': ['🪙', 'CRAZY COIN FLIP', 'coin', '/live-casino/crazy-coin-flip/'],
+    'evo-xxx-lightning': ['⚡', 'XXXTREME LIGHTNING', 'lightning', '/live-casino/live-roulette/xxxtreme-lightning-roulette/']
   };
-  const [symbol, label, theme] = demos[g.id] || ['🎲', 'LIVE GAME DEMO', 'crazy'];
+  const [symbol, label, theme, path] = demos[g.id] || ['🎲', 'LIVE GAME', 'crazy', '/'];
+  const officialUrl = 'https://games.evolution.com' + path;
   shell(`
     <div class="page evo-demo-page">
       <div class="evo-demo-top">
         <button class="secondary" onclick="home()">‹ BACK</button>
-        <span class="evo-demo-live"><i></i> DEMO</span>
+        <span class="evo-demo-live"><i></i> OFFICIAL VIDEO</span>
       </div>
-      <section class="evo-demo-stage evo-theme-${theme}">
-        <div class="evo-demo-orbit"></div>
-        <div class="evo-demo-symbol">${symbol}</div>
-        <div class="evo-demo-label">${label}</div>
-        <h2>${esc(g.name)}</h2>
-        <div class="evo-demo-pills"><span>LIVE SHOW STYLE</span><span>PREVIEW</span></div>
+      <h2 class="evo-video-title">${esc(g.name)}</h2>
+      <section class="evo-video-frame-wrap">
+        <iframe class="evo-video-frame" title="${esc(g.name)} official Evolution video page"
+          src="${officialUrl}" loading="lazy" allow="autoplay; fullscreen; picture-in-picture"
+          referrerpolicy="strict-origin-when-cross-origin"></iframe>
       </section>
       <section class="card evo-demo-notice">
-        <b>TK777 • DEMO PREVIEW</b>
-        <p>এটি শুধু ডেমো ভিউ। এখানে আসল Evolution লাইভ ভিডিও, রেজাল্ট বা বেট চালু নেই।</p>
-        <small>আসল Provider API পরে যুক্ত করা যাবে।</small>
+        <b>OFFICIAL EVOLUTION FREEPLAY</b>
+        <p>এটি Evolution-এর অফিসিয়াল ফ্রি-প্লে ভিডিও পেজ। TK777 থেকে কোনো বেট বা টাকা জমা হবে না। ভিডিওটি এখানে না চললে নিচের অফিসিয়াল লিংক ব্যবহার করুন।</p>
+        <a class="button secondary evo-official-link" href="${officialUrl}" target="_blank" rel="noopener noreferrer">Evolution-এ ভিডিও খুলুন ↗</a>
       </section>
       <button class="secondary evo-demo-back" onclick="home()">গেম তালিকায় ফিরে যান</button>
     </div>
