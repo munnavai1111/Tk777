@@ -488,15 +488,27 @@ function toggleFavorite(id, el) {
   if (el) el.textContent = ids.includes(id) ? '♥' : '♡';
 }
 
+const TK777_GAME_COVER_ART = {
+  aviator: 'https://d204vpor8h38p3.cloudfront.net/Game_Image/287x200/Online-Casino-Instant-Game-CRAZY-Aviator.webp?v=1795234292',
+  superace: 'https://slotcatalog.com/userfiles/image/games/Jili-Games/24610/Super-Ace-hot_cold.webp'
+};
 function gameCard(g) {
+  const type = String(g.game_type || '').toLowerCase();
+  const name = String(g.name || '').toLowerCase();
+  const officialCover = /aviator/.test(name) || type === 'aviator'
+    ? TK777_GAME_COVER_ART.aviator
+    : /super\\s*ace/.test(name) || type === 'superace'
+      ? TK777_GAME_COVER_ART.superace
+      : '';
+  const cover = officialCover || g.image_url || '';
   return `
     <button class="game" onclick="openGame('${esc(g.id)}')">
       <span class="favorite-toggle"
         onclick="event.stopPropagation();toggleFavorite('${esc(g.id)}',this)">
         ${favoriteIds().includes(g.id) ? '♥' : '♡'}
       </span>
-      ${g.image_url
-        ? `<img src="${esc(g.image_url)}" alt="" onerror="this.style.display='none'">`
+      ${cover
+        ? `<img src="${esc(cover)}" alt="${esc(g.name)}" loading="lazy" onerror="this.style.display='none'">`
         : `<div class="placeholder">${g.game_type === 'aviator' ? '✈️' : g.game_type === 'superace' ? '🂡' : '🎮'}</div>`}
       <strong>${esc(g.name)}</strong>
       <small>${g.game_type === 'aviator' ? 'CRASH GAME' : g.game_type === 'superace' ? 'CARD GAME' : 'ARCADE GAME'}</small>
