@@ -597,26 +597,47 @@ async function route(req, env) {
   /* ADMIN BOOTSTRAP */
 
   if (p === "/api/admin/bootstrap" && method === "POST") {
-    if (!env.ADMIN_PASSWORD) {
-      return json({ error: "ADMIN_PASSWORD secret configure করা হয়নি" }, 400);
+    if (!env.ADMIN_PASSWORD || !env.ADMIN_EMAIL) {
+      return json({ error: "ADMIN_EMAIL এবং ADMIN_PASSWORD secrets configure করুন" }, 400);
     }
-    const adminEmail = String(env.ADMIN_EMAIL || "tk777admin@tk777.local").trim().toLowerCase();
+    const adminEmail = String(env.ADMIN_EMAIL).trim().toLowerCase();
     const { email, password, username } = await req.json();
 
-    if (
-      String(email || "").trim().toLowerCase() !== adminEmail ||
-      password !== env.ADMIN_PASSWORD
-    ) {
+    if (!adminEmail || String(email || "").trim().toLowerCase() !== adminEmail ||
+        password !== env.ADMIN_PASSWORD) {
       return json({ error: "অনুমোদন হয়নি" }, 403);
     }
 
-    let u = await env.DB.prepare(`
-      SELECT id FROM users WHERE email=?
-    `).bind(adminEmail).first();
+    // Reuse the existing admin account so its ID, balance and related records remain intact.
+    const emailOwner = await env.DB.prepare(
+      "SELECT id,role FROM users WHERE lower(email)=? LIMIT 1"
+    ).bind(adminEmail).first();
 
-    if (!u) {
-      const salt = uid();
-      const ph = await passHash(password, salt);
+    let u = await env.DB.prepare(
+      "SELECT id FROM users WHERE role='admin' ORDER BY id LIMIT 1"
+    ).first();
+
+    if (emailOwner && (!u || String(emailOwner.id) !== String(u.id)) && emailOwner.role !== "admin") {
+      return json({ error: "এই Email অন্য একটি User account-এ ব্যবহৃত হচ্ছে। আগে আলাদা Email দিন।" }, 409);
+    }
+
+    const salt = uid();
+    const ph = await passHash(password, salt);
+
+    if (u) {
+      await env.DB.prepare(`
+        UPDATE users
+        SET email=?,password_hash=?,password_salt=?,password='',role='admin'
+        WHERE id=?
+      `).bind(adminEmail, ph, salt, u.id).run();
+    } else if (emailOwner && emailOwner.role === "admin") {
+      u = { id: emailOwner.id };
+      await env.DB.prepare(`
+        UPDATE users
+        SET password_hash=?,password_salt=?,password='',role='admin'
+        WHERE id=?
+      `).bind(ph, salt, u.id).run();
+    } else {
       const userInfo = await env.DB.prepare("PRAGMA table_info(users)").all();
       const idColumn = (userInfo.results || []).find(column => column.name === "id");
       let id;
@@ -637,12 +658,10 @@ async function route(req, env) {
       }
       if (id === undefined || id === null || id === "" || (typeof id === "number" && (!Number.isSafeInteger(id) || id <= 0))) throw new Error("Admin User ID পাওয়া যায়নি");
       u = { id };
-    } else {
-      await env.DB.prepare(`
-        UPDATE users SET role='admin' WHERE id=?
-      `).bind(u.id).run();
     }
 
+    // Revoke previous sessions for this admin after credential rotation.
+    await env.DB.prepare("DELETE FROM sessions WHERE user_id=?").bind(u.id).run();
     return await loginUser(u.id, env);
   }
 
