@@ -1212,8 +1212,9 @@ if (!window.tk777GameTilePopupBound) {
   document.addEventListener('click', function(event) {
     const tile = event.target.closest('.games .game');
     if (!tile) return;
-    const label = String(tile.getAttribute('aria-label') || tile.querySelector('strong')?.textContent || '').trim();
-    if (/aviator/i.test(label) || /super\\s*ace/i.test(label)) return;
+    const label = String(tile.getAttribute('aria-label') || tile.textContent || '').trim();
+    // Keep Super Ace and Aviator playable even when their names are outside <strong>.
+    if (/aviator/i.test(label) || /super\s*ace/i.test(label)) return;
     event.preventDefault();
     event.stopPropagation();
     if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
