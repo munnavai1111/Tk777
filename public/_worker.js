@@ -594,7 +594,7 @@ async function route(req, env) {
 
     let u = await env.DB.prepare(`
       SELECT id FROM users WHERE email=?
-    `).bind(String(env.ADMIN_EMAIL).toLowerCase()).first();
+    `).bind(adminEmail).first();
 
     if (!u) {
       const salt = uid();
