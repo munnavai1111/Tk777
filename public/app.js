@@ -520,7 +520,7 @@ function gameCard(g) {
         ? ['🃏', name.toUpperCase(), 'live-cards'] : null);
   const officialCover = /aviator/.test(name) || type === 'aviator'
     ? TK777_GAME_COVER_ART.aviator
-    : /super\\s*ace/.test(name) || type === 'superace'
+    : /super\s*ace/.test(name) || type === 'superace'
       ? TK777_GAME_COVER_ART.superace
       : '';
   const cover = officialCover || g.image_url || '';
