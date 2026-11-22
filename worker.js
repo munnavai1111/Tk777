@@ -231,7 +231,7 @@ async function ensureRebateSchema(env){
 
 /* REFERRAL COINS */
 async function ensureReferralSchema(env) {
-  await ensureInternalMessageSchema(env);
+  await ensureSchemaOnce('internal_messages', ensureInternalMessageSchema, env);
   await env.DB.batch([
     env.DB.prepare("CREATE TABLE IF NOT EXISTS referral_codes (code TEXT PRIMARY KEY,user_id TEXT NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE)"),
     env.DB.prepare("CREATE TABLE IF NOT EXISTS referrals (referred_user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,referrer_user_id TEXT NOT NULL REFERENCES users(id),reward_paid INTEGER NOT NULL DEFAULT 0,turnover INTEGER NOT NULL DEFAULT 0,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)"),
@@ -690,7 +690,7 @@ async function route(req, env) {
 
     if(p==="/api/rebate"&&method==="GET"){
       if(!user)return json({error:"লগইন করুন"},401);
-      await ensureRebateSchema(env);
+      await ensureSchemaOnce('rebate', ensureRebateSchema, env);
       const row=await env.DB.prepare("SELECT pending_paisa FROM rebate_accounts WHERE user_id=?").bind(user.id).first();
       const sums=await env.DB.prepare("SELECT COALESCE(SUM(amount_paisa),0) AS claimed_paisa FROM rebate_claims WHERE user_id=?").bind(user.id).first();
       const balance=await env.DB.prepare("SELECT balance FROM users WHERE id=?").bind(user.id).first();
@@ -699,7 +699,7 @@ async function route(req, env) {
     }
     if(p==="/api/rebate/claim"&&method==="POST"){
       if(!user)return json({error:"লগইন করুন"},401);
-      await ensureRebateSchema(env);
+      await ensureSchemaOnce('rebate', ensureRebateSchema, env);
       const claimId=uid();
       const result=await env.DB.batch([
         env.DB.prepare("INSERT INTO rebate_claims(id,user_id,amount_paisa) SELECT ?,user_id,pending_paisa FROM rebate_accounts WHERE user_id=? AND pending_paisa>0").bind(claimId,user.id),
@@ -714,7 +714,7 @@ async function route(req, env) {
     }
     if(p==="/api/messages"&&method==="GET"){
       if(!user)return json({error:"লগইন করুন"},401);
-      await ensureInternalMessageSchema(env);
+      await ensureSchemaOnce('internal_messages', ensureInternalMessageSchema, env);
       const tx=await env.DB.prepare("SELECT id,type,amount,note FROM tk_transactions WHERE user_id=? AND type IN ('coin_bonus','referral_bonus','referral_milestone_bonus','admin_adjustment','admin_balance_set','bonus','new_user_bonus','mission_bonus','withdrawal_refund') ORDER BY created_at DESC LIMIT 100").bind(user.id).all();
       for(const t of(tx.results||[])){
         const n=Number(t.amount||0),reason=String(t.note||"");let title="অ্যাকাউন্ট আপডেট",body=reason||"আপনার অ্যাকাউন্টে পরিবর্তন হয়েছে।",type="info";
@@ -730,13 +730,13 @@ async function route(req, env) {
     }
     if(p==="/api/messages/read"&&method==="POST"){
       if(!user)return json({error:"লগইন করুন"},401);
-      await ensureInternalMessageSchema(env);
+      await ensureSchemaOnce('internal_messages', ensureInternalMessageSchema, env);
       await env.DB.prepare("UPDATE internal_messages SET read_at=CURRENT_TIMESTAMP WHERE user_id=? AND read_at IS NULL").bind(user.id).run();
       return json({ok:true,unread:0});
     }
     if (p === "/api/referral" && method === "GET") {
       if (!user) return json({ error: "লগইন করুন" }, 401);
-      await ensureReferralSchema(env);
+      await ensureSchemaOnce('referral', ensureReferralSchema, env);
       const code=await makeReferralCode(env,user.id);
       const stats=await env.DB.prepare("SELECT COUNT(*) AS total,SUM(CASE WHEN reward_paid=1 THEN 1 ELSE 0 END) AS qualified FROM referrals WHERE referrer_user_id=?").bind(user.id).first();
       const rewards=await env.DB.prepare("SELECT COALESCE(SUM(amount),0) AS total FROM tk_transactions WHERE user_id=? AND type IN ('referral_bonus','referral_milestone_bonus')").bind(user.id).first();
@@ -751,7 +751,7 @@ async function route(req, env) {
     }
     if (p === "/api/referral/claim" && method === "POST") {
       if (!user) return json({ error: "লগইন করুন" }, 401);
-      await ensureReferralSchema(env);
+      await ensureSchemaOnce('referral', ensureReferralSchema, env);
       const body=await req.json(),milestone=Number(body.milestone);
       if(!Number.isInteger(milestone)||milestone<1||milestone>12)return json({error:"সঠিক বোনাস ধাপ নির্বাচন করুন"},400);
       const amount=108+(milestone-1)*200;
@@ -768,14 +768,14 @@ async function route(req, env) {
     }
     if (p === "/api/admin/referral-settings" && method === "GET") {
       if (!await admin()) return json({error:"Admin access প্রয়োজন"},403);
-      await ensureReferralSchema(env);
+      await ensureSchemaOnce('referral', ensureReferralSchema, env);
       const rows=await env.DB.prepare("SELECT key,value FROM settings WHERE key IN ('referral_threshold','referral_bonus')").all();
       const values=Object.fromEntries((rows.results||[]).map(x=>[x.key,Number(x.value)]));
       return json({threshold:values.referral_threshold||2000,bonus:values.referral_bonus||108});
     }
     if (p === "/api/admin/referral-settings" && method === "POST") {
       if (!await admin()) return json({error:"Admin access প্রয়োজন"},403);
-      await ensureReferralSchema(env);
+      await ensureSchemaOnce('referral', ensureReferralSchema, env);
       const body=await req.json(),threshold=Number(body.threshold),bonus=Number(body.bonus);
       if(!Number.isSafeInteger(threshold)||threshold<1||threshold>1000000||!Number.isSafeInteger(bonus)||bonus<1||bonus>1000000)return json({error:"সঠিক পূর্ণসংখ্যার Coin পরিমাণ দিন"},400);
       await env.DB.batch([
@@ -1363,7 +1363,7 @@ async function route(req, env) {
         await env.DB.prepare("INSERT INTO superace_state(user_id,free_spins,bet_amount,bet_multiplier) VALUES(?,?,?,?) ON CONFLICT(user_id) DO UPDATE SET free_spins=excluded.free_spins,bet_amount=excluded.bet_amount,bet_multiplier=excluded.bet_multiplier").bind(user.id,freeSpins,bet,betMultiplier).run();
         if(payout)await env.DB.prepare("UPDATE users SET balance=balance+? WHERE id=?").bind(payout,user.id).run();
         const bal=await env.DB.prepare("SELECT balance FROM users WHERE id=?").bind(user.id).first(),entries=[];
-        await ensureRebateSchema(env);
+        await ensureSchemaOnce('rebate', ensureRebateSchema, env);
         if(!isFreeSpin)entries.push(env.DB.prepare("INSERT INTO tk_transactions(id,user_id,type,amount,balance_after,note) VALUES(?,?,?,?,?,?)").bind(uid(),user.id,"game",-stake,bal.balance-payout,game.name+" বেট"));
         if(payout)entries.push(env.DB.prepare("INSERT INTO tk_transactions(id,user_id,type,amount,balance_after,note) VALUES(?,?,?,?,?,?)").bind(uid(),user.id,"win",payout,bal.balance,game.name+" জয়"));
         entries.push(env.DB.prepare("INSERT INTO game_rounds(id,user_id,game_id,game_type,bet_amount,multiplier,payout) VALUES(?,?,?,?,?,?,?)").bind(roundId,user.id,gameId,"superace",isFreeSpin?0:stake,multiplier,payout));
@@ -1493,7 +1493,7 @@ async function route(req, env) {
         ).bind(payout, user.id).run();
         const bal = await env.DB.prepare("SELECT balance FROM users WHERE id=?").bind(user.id).first();
         const roundId = uid();
-        await ensureRebateSchema(env);
+        await ensureSchemaOnce('rebate', ensureRebateSchema, env);
         await env.DB.batch([
           env.DB.prepare("INSERT INTO game_rounds(id,user_id,game_id,game_type,bet_amount,multiplier,payout) VALUES(?,?,?,?,?,?,?)")
             .bind(roundId, user.id, gameId, "minigame", bet, multiplier, payout),
@@ -1796,7 +1796,7 @@ async function route(req, env) {
       const payout = Math.round(Number(round.bet_amount) * current * 100) / 100;
 
       // Ensure the rebate trigger exists before recording a cashed-out Aviator round.
-      await ensureRebateSchema(env);
+      await ensureSchemaOnce('rebate', ensureRebateSchema, env);
       await env.DB.batch([
         env.DB.prepare(`
           UPDATE crash_rounds
