@@ -533,7 +533,7 @@ function gameCard(g) {
     : /super\s*ace/.test(name) || type === 'superace'
       ? TK777_GAME_COVER_ART.superace
       : '';
-  const cover = officialCover || g.image_url || '';
+  const cover = g.image_url || officialCover;
   const placeholder = live
     ? `<div class="placeholder live-game-cover ${live[2]}"><span>${live[0]}</span><small>${esc(live[1])}</small></div>`
     : `<div class="placeholder">${type === 'aviator' ? '✈️' : type === 'superace' ? '🂡' : '🎮'}</div>`;
