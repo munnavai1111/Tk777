@@ -71,7 +71,7 @@ html,body{margin:0;width:100%;height:100%;min-height:100%;overflow:hidden;backgr
 <header class="top"><button class="close" type="button" onclick="parent.home()" aria-label="Back">×</button> <div class="brand">SuperAce</div></header>
 <div class="multis" id="comboMeter" aria-label="Combo multiplier"><div class="multi active" data-x="1">×1</div><div class="multi" data-x="2">×2</div><div class="multi" data-x="3">×3</div><div class="multi" data-x="5">×5</div></div>
 <section class="stage"><div class="board" id="board"></div></section>
-<div class="status" id="status">কার্ড মিলিয়ে জিতুন</div><div class="win-line">TOTAL WIN&nbsp; <span id="win">0.00</span></div>
+<div class="status" id="status">কার্ড মিলিয়ে জিতুন</div><div class="win-line">WIN&nbsp; <span id="cascadeWin">0.00</span>&nbsp; · &nbsp;TOTAL WIN&nbsp; <span id="win">0.00</span></div>
 <section class="controls">
  <div class="ctrl bet-control"><button class="round" id="betMinus" type="button">−</button><div class="bet-value"><small>BET</small><b id="bet">50</b></div><button class="round" id="betPlus" type="button">+</button></div>
  <div class="ctrl"><button class="spin" id="spin" type="button">✦<br>SPIN</button></div>
@@ -336,7 +336,10 @@ async function play(){
     }
     if(frame.type==='win'){
      highlightExisting(frame.wins||[]);
-     $('status').textContent='WINNING CARDS';
+     $('cascadeWin').textContent=fmt(frame.winAmount||0);
+     $('win').textContent=fmt(frame.totalWin||0);
+     $('win').parentElement.classList.add('show');
+     $('status').textContent='WIN +'+fmt(frame.winAmount||0)+' · TOTAL WIN '+fmt(frame.totalWin||0);
      await sleep(turbo?240:650);continue;
     }
     if(frame.type==='golden'){
@@ -369,7 +372,7 @@ async function play(){
    if(Array.isArray(result.finalGrid)&&result.finalGrid.length===20&&JSON.stringify(visibleGrid)!==JSON.stringify(result.finalGrid))draw(result.finalGrid);
   }
   setCombo(freeSpins>0?2:1,freeSpins>0);
-  totalWin=Math.max(0,Number(result.payout||0));if(totalWin>0){$('win').textContent=fmt(totalWin);$('win').parentElement.classList.add('show');}
+  totalWin=Math.max(0,Number(result.payout||0));$('cascadeWin').textContent=fmt(frames.filter(f=>f.type==='win').slice(-1)[0]?.winAmount||0);$('win').textContent=fmt(totalWin);if(totalWin>0||frames.some(f=>f.type==='win'))$('win').parentElement.classList.add('show');
   const awarded=Number(result.freeSpinAward||0);if(awarded>0)showFreeSpinOffer();
   $('status').textContent=(awarded?'🎉 SCATTER BONUS · +'+awarded+' FREE SPINS · ':result.freeSpin?'FREE SPIN · ':'')+(Number(result.payout||0)>0?'WIN · MAX COMBO ×'+Number(result.maxCascadeX||1)+' · '+Number(result.cascadeCount||0)+' CASCADES':'NO WIN · TRY AGAIN')+(freeSpins?' · FREE SPINS LEFT '+freeSpins:'');
  }catch(e){$('status').textContent=e.message;try{const d=await request('/me');balance=Number(d.user.balance||0);update();sendBalanceToParent()}catch(_){}}
