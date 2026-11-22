@@ -1258,6 +1258,7 @@ async function route(req, env) {
         totalWin+=cascadeWin;
         frames.push({type:"win",grid:[...grid],wins:found.wins,cascadeX,winAmount:cascadeWin,totalWin});
         cascadeCount++;
+        const nextCascadeX=comboSteps[Math.min(cascadeCount,3)]*(isFreeSpin?2:1);
         // Only golden cards that are part of a winning group become wild, in their exact cells.
         const goldenCells=[...new Set(found.groups.flatMap(group=>group.cells))].filter(ix=>String(grid[ix]||"").startsWith("golden"));
         const nextAfterGolden=[...grid];
@@ -1268,7 +1269,7 @@ async function route(req, env) {
         // Converted wilds remain for the next cascade; when they help form a win,
         // they are included in found.wins and removed with that winning group.
         const removed=found.wins.filter(ix=>!goldenCells.includes(ix));
-        frames.push({type:"remove",grid:[...nextAfterGolden],cells:removed,cascadeX});
+        frames.push({type:"remove",grid:[...nextAfterGolden],cells:removed,nextCascadeX});
         const removedSet=new Set(removed);
         const compacted=Array(20).fill(null),moved=[],moves=[],refillCells=[];
         // Each reel compacts independently: survivors fall to the bottom; fresh cards enter from above.
@@ -1288,12 +1289,12 @@ async function route(req, env) {
             if(item.oldIx!==item.newIx){moved.push(item.newIx);moves.push({from:item.oldIx,to:item.newIx});}
           }
         }
-        frames.push({type:"drop",grid:[...compacted],cells:moved,moves,cascadeX});
+        frames.push({type:"drop",grid:[...compacted],cells:moved,moves,nextCascadeX});
         const refilled=[...compacted];
         for(const ix of refillCells)refilled[ix]=pickCard(ix%5);
         grid=refilled;
         trackScatters(grid);
-        frames.push({type:"refill",grid:[...grid],cells:refillCells,cascadeX});
+        frames.push({type:"refill",grid:[...grid],cells:refillCells,nextCascadeX});
       }
       const payout=Math.max(0,Math.floor(totalWin)),multiplier=Number((payout/stake).toFixed(2));
       let freeSpins=isFreeSpin?Math.max(0,Number(saved.free_spins)-1):Number(saved?.free_spins||0);
