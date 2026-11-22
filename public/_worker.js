@@ -186,7 +186,7 @@ async function ensureLegacyCompatibleSchema(env) {
   await env.DB.prepare("INSERT OR IGNORE INTO settings(key,value) VALUES('site_name','TK777'),('maintenance','false')").run();
 
   // Copy the old transaction history once; keep the original table untouched.
-  await env.DB.prepare("INSERT OR IGNORE INTO tk_transactions(id,user_id,type,amount,balance_after,note,status,created_at) SELECT CAST(t.id AS TEXT),t.user_id,t.type,t.amount,COALESCE(u.balance,0),'Imported legacy transaction',COALESCE(t.status,'completed'),t.created_at FROM tk_transactions t LEFT JOIN users u ON u.id=t.user_id").run();
+  await env.DB.prepare("INSERT OR IGNORE INTO tk_transactions(id,user_id,type,amount,balance_after,note,status,created_at) SELECT CAST(t.id AS TEXT),t.user_id,t.type,t.amount,COALESCE(u.balance,0),'Imported legacy transaction',COALESCE(t.status,'completed'),t.created_at FROM transactions t LEFT JOIN users u ON u.id=t.user_id").run();
 }
 
 
