@@ -510,9 +510,19 @@ function gameCard(g) {
     'baccarat': ['🃏', 'BACCARAT', 'live-cards'],
     'live-roulette': ['🎯', 'LIVE ROULETTE', 'live-roulette'],
     'live-blackjack': ['♠️', 'LIVE BLACKJACK', 'live-cards'],
-    'live-baccarat': ['♦️', 'LIVE BACCARAT', 'live-cards']
+    'live-baccarat': ['♦️', 'LIVE BACCARAT', 'live-cards'],
+    'evo-crazy-time': ['🎡', 'CRAZY TIME', 'live-show'],
+    'evo-funky-time': ['🪩', 'FUNKY TIME', 'live-show'],
+    'evo-disco-balls': ['🪩', 'DISCO BALLS', 'live-show'],
+    'evo-mega-ball': ['🔮', 'MEGA BALL', 'live-show'],
+    'evo-dream-catcher': ['🌙', 'DREAM CATCHER', 'live-show'],
+    'evo-lightning-roulette': ['⚡', 'LIGHTNING ROULETTE', 'live-show'],
+    'evo-monopoly-live': ['🏙️', 'MONOPOLY LIVE', 'live-show'],
+    'evo-deal-or-no-deal': ['💼', 'DEAL OR NO DEAL', 'live-show'],
+    'evo-crazy-coin-flip': ['🪙', 'CRAZY COIN FLIP', 'live-show'],
+    'evo-xxx-lightning': ['⚡', 'XXXTREME LIGHTNING', 'live-show']
   };
-  const live = liveArt[id] || (type === 'live' && /roulette/.test(name)
+  const live = liveArt[id] || (type === 'evolution-demo' ? ['🎲', name.toUpperCase(), 'live-show'] : type === 'live' && /roulette/.test(name)
     ? ['🎡', name.toUpperCase(), 'live-roulette']
     : type === 'live' && /blackjack/.test(name)
       ? ['♠️', name.toUpperCase(), 'live-cards']
@@ -537,7 +547,7 @@ function gameCard(g) {
         ? `<img src="${esc(cover)}" alt="${esc(g.name)}" loading="lazy" onerror="this.style.display='none'">`
         : placeholder}
       <strong>${esc(g.name)}</strong>
-      <small>${live ? 'LIVE CASINO' : type === 'aviator' ? 'CRASH GAME' : type === 'superace' ? 'CARD GAME' : 'ARCADE GAME'}</small>
+      <small>${live ? (type === 'evolution-demo' ? 'LIVE DEMO' : 'LIVE CASINO') : type === 'aviator' ? 'CRASH GAME' : type === 'superace' ? 'CARD GAME' : 'ARCADE GAME'}</small>
     </button>`;
 }
 
@@ -1191,6 +1201,7 @@ function openGame(id) {
   if (g.game_type === 'aviator') aviator(g);
   else if (g.game_type === 'superace') superAce(g);
   else if (g.game_type === 'minigame') miniGame(g);
+  else if (g.game_type === 'evolution-demo') evolutionDemo(g);
 }
 
 /* ==========================================
@@ -1211,6 +1222,45 @@ const MINI_GAME_INFO = {
   'live-blackjack':{icon:'🂡',subtitle:'Live Blackjack Table',choices:[],hint:'অ্যানিমেটেড ডিলার কার্ড খুলবে। এটি সিমুলেটেড টেবিল, আসল লাইভ ডিলার নয়।'},
   'live-baccarat':{icon:'♠️',subtitle:'Live Baccarat Table',choices:[['player','PLAYER'],['banker','BANKER'],['tie','TIE']],hint:'ডিলার-স্টাইল সিমুলেটেড Baccarat। Player/Banker 1.95x, Tie 8x।'}
 };
+/* Evolution-style preview screens. Visual-only demo, not provider streams. */
+function evolutionDemo(g) {
+  stopCrashMonitor();
+  const demos = {
+    'evo-crazy-time': ['🎡', 'BONUS WHEEL', 'crazy'],
+    'evo-funky-time': ['🪩', 'FUNKY BONUS', 'funky'],
+    'evo-disco-balls': ['🪩', 'DISCO BALLS', 'disco'],
+    'evo-mega-ball': ['🔮', 'MEGA BALL', 'mega'],
+    'evo-dream-catcher': ['🌙', 'DREAM CATCHER', 'dream'],
+    'evo-lightning-roulette': ['⚡', 'LIGHTNING ROULETTE', 'lightning'],
+    'evo-monopoly-live': ['🏙️', 'MONOPOLY LIVE', 'monopoly'],
+    'evo-deal-or-no-deal': ['💼', 'DEAL OR NO DEAL', 'deal'],
+    'evo-crazy-coin-flip': ['🪙', 'CRAZY COIN FLIP', 'coin'],
+    'evo-xxx-lightning': ['⚡', 'XXXTREME LIGHTNING', 'lightning']
+  };
+  const [symbol, label, theme] = demos[g.id] || ['🎲', 'LIVE GAME DEMO', 'crazy'];
+  shell(`
+    <div class="page evo-demo-page">
+      <div class="evo-demo-top">
+        <button class="secondary" onclick="home()">‹ BACK</button>
+        <span class="evo-demo-live"><i></i> DEMO</span>
+      </div>
+      <section class="evo-demo-stage evo-theme-${theme}">
+        <div class="evo-demo-orbit"></div>
+        <div class="evo-demo-symbol">${symbol}</div>
+        <div class="evo-demo-label">${label}</div>
+        <h2>${esc(g.name)}</h2>
+        <div class="evo-demo-pills"><span>LIVE SHOW STYLE</span><span>PREVIEW</span></div>
+      </section>
+      <section class="card evo-demo-notice">
+        <b>TK777 • DEMO PREVIEW</b>
+        <p>এটি শুধু ডেমো ভিউ। এখানে আসল Evolution লাইভ ভিডিও, রেজাল্ট বা বেট চালু নেই।</p>
+        <small>আসল Provider API পরে যুক্ত করা যাবে।</small>
+      </section>
+      <button class="secondary evo-demo-back" onclick="home()">গেম তালিকায় ফিরে যান</button>
+    </div>
+  `);
+}
+
 function miniGameStage(gameId) {
   const stages = {
     'gold-mines':'<div class="mg-mines-grid">'+Array.from({length:5},(_,i)=>'<span class="mg-mine-tile" style="--i:'+i+'">?</span>').join('')+'</div>',
