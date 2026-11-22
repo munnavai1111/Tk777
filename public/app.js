@@ -519,6 +519,8 @@ function gameCard(g) {
   const type = String(g.game_type || '').toLowerCase();
   const name = String(g.name || '').toLowerCase();
   const id = String(g.id || '').toLowerCase();
+  const playableException = type === 'aviator' || /aviator/i.test(name) || type === 'superace' || /super\s*ace/i.test(name);
+  const cardClick = playableException ? `openGame('${esc(g.id)}')` : 'showGameDepositPopup()';
   const liveArt = {
     'european-roulette': ['🎡', 'EUROPEAN ROULETTE', 'live-roulette'],
     'baccarat': ['🃏', 'BACCARAT', 'live-cards'],
@@ -564,7 +566,7 @@ function gameCard(g) {
     ? `<div class="placeholder live-game-cover ${live[2]}"><span>${live[0]}</span><small>${esc(live[1])}</small></div>`
     : `<div class="placeholder">${type === 'aviator' ? '✈️' : type === 'superace' ? '🂡' : '🎮'}</div>`;
   return `
-    <button class="game" onclick="openGame('${esc(g.id)}')">
+    <button class="game" onclick="${cardClick}">
       <span class="favorite-toggle"
         onclick="event.stopPropagation();toggleFavorite('${esc(g.id)}',this)">
         ${favoriteIds().includes(g.id) ? '♥' : '♡'}
@@ -651,7 +653,7 @@ function displaySlotCard(g) {
   const art = image
     ? '<img class="slot-admin-image" src="' + esc(image) + '" alt="' + esc(g.name) + '" loading="lazy" onerror="this.style.display=\'none\'">'
     : '<div class="slot-poster slot-' + esc(g.tone) + '"><span class="slot-poster-mark">' + g.mark + '</span></div>';
-  const exempt = /super\\s*ace/i.test(String(g.name || ''));
+  const exempt = /super\s*ace/i.test(String(g.name || ''));
   const clickAction = exempt ? '' : ' onclick="showGameDepositPopup()"';
   return '<div class="game display-slot-game" role="button" tabindex="0" aria-label="' + esc(g.name) + '"' + clickAction + '><div class="slot-art">' + art + '</div><strong>' + esc(g.name) + '</strong><small>SLOT GAME</small></div>';
 }
