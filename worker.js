@@ -186,8 +186,18 @@ async function ensureLegacyCompatibleSchema(env) {
   await env.DB.prepare("INSERT OR IGNORE INTO games(id,name,category_id,image_url,game_type,sort_order) VALUES('aviator','Aviator','hot','','aviator',1),('super-ace','Super Ace','slots','','superace',2)").run();
   await env.DB.prepare("INSERT OR IGNORE INTO settings(key,value) VALUES('site_name','TK777'),('maintenance','false')").run();
 
-  // Copy the old transaction history once; keep the original table untouched.
-  await env.DB.prepare("INSERT OR IGNORE INTO tk_transactions(id,user_id,type,amount,balance_after,note,status,created_at) SELECT CAST(t.id AS TEXT),t.user_id,t.type,t.amount,COALESCE(u.balance,0),'Imported legacy transaction',COALESCE(t.status,'completed'),t.created_at FROM transactions t LEFT JOIN users u ON u.id=t.user_id").run();
+  // Copy legacy transaction rows without changing the original table.
+  const txInfo = await env.DB.prepare("PRAGMA table_info(transactions)").all();
+  const txColumns = new Set((txInfo.results || []).map(row => row.name));
+  if (txColumns.has("status")) {
+    await env.DB.prepare("INSERT OR IGNORE INTO tk_transactions(id,user_id,type,amount,balance_after,note,status,created_at) SELECT CAST(t.id AS TEXT),t.user_id,t.type,t.amount,COALESCE(u.balance,0),'Imported legacy transaction',COALESCE(t.status,'completed'),t.created_at FROM transactions t LEFT JOIN users u ON u.id=t.user_id").run();
+  } else if (txColumns.has("balance_after") && txColumns.has("note")) {
+    await env.DB.prepare("INSERT OR IGNORE INTO tk_transactions(id,user_id,type,amount,balance_after,note,status,created_at) SELECT CAST(t.id AS TEXT),t.user_id,t.type,t.amount,t.balance_after,t.note,'completed',t.created_at FROM transactions t").run();
+  }
+  const crashInfo = await env.DB.prepare("PRAGMA table_info(crash_rounds)").all();
+  const crashColumns = new Set((crashInfo.results || []).map(row => row.name));
+  if (!crashColumns.has("session_id")) await env.DB.prepare("ALTER TABLE crash_rounds ADD COLUMN session_id TEXT NOT NULL DEFAULT ''").run();
+  if (!crashColumns.has("start_ms")) await env.DB.prepare("ALTER TABLE crash_rounds ADD COLUMN start_ms INTEGER NOT NULL DEFAULT 0").run();
 }
 
 
@@ -535,9 +545,17 @@ async function route(req, env) {
         referrer = await env.DB.prepare("SELECT user_id FROM referral_codes WHERE code=?").bind(referralCode).first();
         if (!referrer) return json({ error: "Referral Link সঠিক নয়" }, 400);
       }
-      const inserted = await env.DB.prepare("INSERT INTO users (username,password,email,password_hash,password_salt,balance,role) VALUES(?,'',?,?,?,0,'user')").bind(phone, phone, ph, salt).run();
-      const id = Number(inserted.meta?.last_row_id);
-      if (!Number.isSafeInteger(id) || id <= 0) throw new Error("নতুন User ID পাওয়া যায়নি");
+      const userInfo = await env.DB.prepare("PRAGMA table_info(users)").all();
+      const idColumn = (userInfo.results || []).find(column => column.name === "id");
+      let id;
+      if (String(idColumn?.type || "").toUpperCase().includes("INT")) {
+        const inserted = await env.DB.prepare("INSERT INTO users (username,password,email,password_hash,password_salt,balance,role) VALUES(?,'',?,?,?,0,'user')").bind(phone, phone, ph, salt).run();
+        id = Number(inserted.meta?.last_row_id);
+      } else {
+        id = uid();
+        await env.DB.prepare("INSERT INTO users (id,username,password,email,password_hash,password_salt,balance,role) VALUES(?,?,'',?,?,?,0,'user')").bind(id, phone, phone, ph, salt).run();
+      }
+      if (id === undefined || id === null || id === "" || (typeof id === "number" && (!Number.isSafeInteger(id) || id <= 0))) throw new Error("নতুন User ID পাওয়া যায়নি");
       await makeReferralCode(env,id);
       if(referrer && Number(referrer.user_id)!==id) await env.DB.prepare("INSERT OR IGNORE INTO referrals(referred_user_id,referrer_user_id) VALUES(?,?)").bind(id,referrer.user_id).run();
       return await loginUser(id, env);
@@ -599,18 +617,25 @@ async function route(req, env) {
     if (!u) {
       const salt = uid();
       const ph = await passHash(password, salt);
-      const inserted = await env.DB.prepare(`
-        INSERT INTO users
-        (username,password,email,password_hash,password_salt,balance,role)
-        VALUES(?,'',?,?,?,0,'admin')
-      `).bind(
-        username || "tk777admin",
-        adminEmail,
-        ph,
-        salt
-      ).run();
-      const id = Number(inserted.meta?.last_row_id);
-      if (!Number.isSafeInteger(id) || id <= 0) throw new Error("Admin User ID পাওয়া যায়নি");
+      const userInfo = await env.DB.prepare("PRAGMA table_info(users)").all();
+      const idColumn = (userInfo.results || []).find(column => column.name === "id");
+      let id;
+      if (String(idColumn?.type || "").toUpperCase().includes("INT")) {
+        const inserted = await env.DB.prepare(`
+          INSERT INTO users
+          (username,password,email,password_hash,password_salt,balance,role)
+          VALUES(?,'',?,?,?,0,'admin')
+        `).bind(username || "tk777admin", adminEmail, ph, salt).run();
+        id = Number(inserted.meta?.last_row_id);
+      } else {
+        id = uid();
+        await env.DB.prepare(`
+          INSERT INTO users
+          (id,username,password,email,password_hash,password_salt,balance,role)
+          VALUES(?,?,'',?,?,?,0,'admin')
+        `).bind(id, username || "tk777admin", adminEmail, ph, salt).run();
+      }
+      if (id === undefined || id === null || id === "" || (typeof id === "number" && (!Number.isSafeInteger(id) || id <= 0))) throw new Error("Admin User ID পাওয়া যায়নি");
       u = { id };
     } else {
       await env.DB.prepare(`
