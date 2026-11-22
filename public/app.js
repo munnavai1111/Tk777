@@ -622,10 +622,9 @@ const TK777_SLOT_LOGOS = {
 
 function displaySlotCard(g) {
   const image = slotDisplayImages[g.id] || TK777_SLOT_LOGOS[g.id] || '';
-  const fallback = '<div class="slot-poster slot-' + esc(g.tone) + '"><span class="slot-poster-mark">' + g.mark + '</span></div>';
   const art = image
-    ? '<img class="slot-admin-image" src="' + esc(image) + '" alt="' + esc(g.name) + '" loading="lazy" onerror="this.outerHTML=\'' + fallback.replace(/'/g, "\\'") + '\'">'
-    : fallback;
+    ? '<img class="slot-admin-image" src="' + esc(image) + '" alt="' + esc(g.name) + '" loading="lazy" onerror="this.style.display=\\'none\\'">'
+    : '<div class="slot-poster slot-' + esc(g.tone) + '"><span class="slot-poster-mark">' + g.mark + '</span></div>';
   return '<div class="game display-slot-game" aria-label="' + esc(g.name) + '">' + art + '<strong>' + esc(g.name) + '</strong><small>SLOT GAME</small></div>';
 }
 
