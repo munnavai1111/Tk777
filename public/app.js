@@ -557,10 +557,34 @@ const displaySlotGames = [
   {id:'slot-display-ways-of-the-qilin',name:'Ways of the Qilin',mark:'🐉',tone:'anubis'}
 ];
 
+// Verified game artwork. Admin-uploaded artwork takes priority over these defaults.
+const TK777_SLOT_LOGOS = {
+  'slot-display-circus-joker': 'https://www.ph-golden-panda.com/casino/images/circus-joker-4096.webp',
+  'slot-display-fortune-gems-3': 'https://www.jiligames.shop/Games%20_%20JILI%20Games_files/bPW0fMkqGM6aXc0p4UeegcJp6kGI1L1vvYwqe0oa.png',
+  'slot-display-super-ace-ii': 'https://www.ph-royal-panda.com/casino/images/super-ace-ii.webp',
+  'slot-display-boxing-king': 'https://www.jiligames.shop/Games%20_%20JILI%20Games_files/7aygh0MAxhIcoy8eEQLaiEi2YkALj8vzQL5eAVz3.png',
+  'slot-display-super-ace-deluxe': 'https://www.jiligames.shop/Games%20_%20JILI%20Games_files/wyk22swsN05seukkxRdqAjzOIZCwhkvsUGFedrC6.png',
+  'slot-display-treasures-of-aztec': 'https://www.pgsoft.com/uploads/Games/Pdf/Treasures_of_Aztec_Gameinformation_EN.pdf',
+  'slot-display-golden-empire': 'https://www.jiligames.shop/Games%20_%20JILI%20Games_files/hGWLb9j2LOPPHyKFxKV2iiFb6ZUyTqvqVDkIhtPi.png',
+  'slot-display-money-coming': 'https://www.newvvjl.net/casino/images/money-coming.webp',
+  'slot-display-fortune-gems': 'https://www.bejilifish.net/casino/images/fortune-gems.webp',
+  'slot-display-fortune-gems-2': 'https://www.jiligames.shop/Games%20_%20JILI%20Games_files/KZv0aJk9dsNFcVWIfOPPhtZ22NVxM1rhpGr1ZI9k.png',
+  'slot-display-devil-fire-2': 'https://www.jiligames.shop/Games%20_%20JILI%20Games_files/j5wu4aZMm9X8b1w9sg8cDFprm9hSfcxzYV3H7LMO.png',
+  'slot-display-zeus': 'https://www.jiligames.shop/Games%20_%20JILI%20Games_files/MBHlzTphKgp5qXO9qwVxxsCXEghEZeJm0YySTchp.png',
+  'slot-display-wild-ace': 'https://miro.medium.com/v2/resize%3Afit%3A623/1%2AtkK6fXUpd3p2lDbdnQwgXw.png',
+  'slot-display-fortune-tiger': 'https://resourcesbr.sbcnoticias.com/sbcnoticiasbr/sites/3/2026/06/Onde-Jogar-O-Jogo-do-Tigrinho.jpg',
+  'slot-display-fortune-ox': 'https://es-mx.fortune-ox.online/image/fortune-ox-logo-poster.webp',
+  'slot-display-fortune-rabbit': 'https://apostas.gazetaesportiva.com/static/wp/imagem-destaque-fortune-rabbit-2.webp',
+  'slot-display-lucky-neko': 'https://slotcatalog.com/userfiles/image/games/PG-Soft/19433/Lucky-Neko-1_sq.jpg',
+  'slot-display-dragon-hatch': 'https://slotslaunch.nyc3.digitaloceanspaces.com/18193/dragon-hatch.jpg',
+  'slot-display-ganesha-fortune': 'https://www.play-mx.com/casino/images/pgs-ganesha-fortune.webp',
+  'slot-display-mahjong-ways': 'https://media.leovegas.com/images/games/mahjong-ways/mahjong-ways-tile-auth.jpg?tr=w-800'
+};
+
 function displaySlotCard(g) {
-  const image = slotDisplayImages[g.id] || '';
+  const image = slotDisplayImages[g.id] || TK777_SLOT_LOGOS[g.id] || '';
   const art = image
-    ? '<img class="slot-admin-image" src="' + esc(image) + '" alt="' + esc(g.name) + '" loading="lazy">'
+    ? '<img class="slot-admin-image" src="' + esc(image) + '" alt="' + esc(g.name) + '" loading="lazy" onerror="this.style.display=\'none\'">'
     : '<div class="slot-poster slot-' + esc(g.tone) + '"><span class="slot-poster-mark">' + g.mark + '</span></div>';
   return '<div class="game display-slot-game" aria-label="' + esc(g.name) + '">' + art + '<strong>' + esc(g.name) + '</strong><small>SLOT GAME</small></div>';
 }
