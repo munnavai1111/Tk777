@@ -1,0 +1,8 @@
+name = "tk777-api"
+main = "worker.js"
+compatibility_date = "2026-11-22"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tk777-db"
+database_id = "4e82c516-2037-4c8d-a3fa-b9c02bdca94a"
