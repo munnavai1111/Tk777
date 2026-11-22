@@ -547,7 +547,7 @@ function gameCard(g) {
         ? `<img src="${esc(cover)}" alt="${esc(g.name)}" loading="lazy" onerror="this.style.display='none'">`
         : placeholder}
       <strong>${esc(g.name)}</strong>
-      <small>${live ? (type === 'evolution-demo' ? 'LIVE DEMO' : 'LIVE CASINO') : type === 'aviator' ? 'CRASH GAME' : type === 'superace' ? 'CARD GAME' : 'ARCADE GAME'}</small>
+      <small>${live ? 'LIVE CASINO' : type === 'aviator' ? 'CRASH GAME' : type === 'superace' ? 'CARD GAME' : 'ARCADE GAME'}</small>
     </button>`;
 }
 
