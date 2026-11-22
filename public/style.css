@@ -1644,3 +1644,6 @@ body{background:#063b39}
 .live-games-grid .game img,.live-games-grid .game .placeholder{height:clamp(58px,18vw,82px);aspect-ratio:1.25;object-fit:cover}
 .live-games-grid .game strong{font-size:11px;padding:6px 2px;line-height:1.2;min-height:0}
 .live-games-grid .game small{font-size:8px;padding:0 2px 7px}
+
+/* Keep original live-game logo artwork fully visible inside compact tiles. */
+.game img.live-game-logo{object-fit:contain!important;padding:6px;background:#082b2b;box-sizing:border-box}
