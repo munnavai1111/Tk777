@@ -564,7 +564,6 @@ const TK777_SLOT_LOGOS = {
   'slot-display-super-ace-ii': 'https://www.ph-royal-panda.com/casino/images/super-ace-ii.webp',
   'slot-display-boxing-king': 'https://www.jiligames.shop/Games%20_%20JILI%20Games_files/7aygh0MAxhIcoy8eEQLaiEi2YkALj8vzQL5eAVz3.png',
   'slot-display-super-ace-deluxe': 'https://www.jiligames.shop/Games%20_%20JILI%20Games_files/wyk22swsN05seukkxRdqAjzOIZCwhkvsUGFedrC6.png',
-  'slot-display-treasures-of-aztec': 'https://www.pgsoft.com/uploads/Games/Pdf/Treasures_of_Aztec_Gameinformation_EN.pdf',
   'slot-display-golden-empire': 'https://www.jiligames.shop/Games%20_%20JILI%20Games_files/hGWLb9j2LOPPHyKFxKV2iiFb6ZUyTqvqVDkIhtPi.png',
   'slot-display-money-coming': 'https://www.newvvjl.net/casino/images/money-coming.webp',
   'slot-display-fortune-gems': 'https://www.bejilifish.net/casino/images/fortune-gems.webp',
