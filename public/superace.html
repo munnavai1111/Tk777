@@ -67,13 +67,31 @@ html,body{margin:0;width:100%;height:100%;min-height:100%;overflow:hidden;backgr
 .free-panel p{margin:8px 0 18px;font-size:17px}
 .free-start{border:0;border-radius:30px;padding:13px 24px;font-weight:900;font-size:17px;color:#382000;background:linear-gradient(#fff0a8,#e9a82d);box-shadow:0 4px 0 #8a4b08}
 
+
+.bet-value.bet-open{border:1px solid #d7ad61;border-radius:8px;background:linear-gradient(180deg,#5a3a20,#21150f);padding:4px 8px;min-width:57px;color:#fff;cursor:pointer;box-shadow:inset 0 1px 3px #fff3,0 2px 4px #000}
+.bet-value.bet-open small{color:#ffdf85;font-size:8px}.bet-value.bet-open b{font-size:13px;color:#fff}
+.bet-overlay{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.76);backdrop-filter:blur(3px)}
+.bet-overlay.show{display:flex}
+.bet-panel{width:min(92vw,350px);padding:15px;border:2px solid #e4b85b;border-radius:16px;background:radial-gradient(ellipse at top,#70431b 0,#24160f 58%,#100d12 100%);box-shadow:0 0 28px #f2b63b55,0 12px 35px #000c;color:#fff}
+.bet-panel-head{display:flex;align-items:center;justify-content:space-between;color:#ffe29a;font:bold 17px Georgia,serif;letter-spacing:1px}
+.bet-panel-head button{width:30px;height:30px;border:1px solid #d6a94d;border-radius:50%;background:#281912;color:#fff;font-size:22px;line-height:20px}
+.bet-current{margin:13px 0 10px;padding:9px;border-radius:8px;background:#100d12;border:1px solid #795326;text-align:center;color:#e9c98c;font-size:10px;letter-spacing:1px}
+.bet-current strong{display:block;margin-top:3px;color:#fff;font-size:22px}
+.bet-options{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.bet-option{padding:10px 3px;border:1px solid #b17c32;border-radius:8px;background:linear-gradient(180deg,#68421e,#302015);color:#ffe8b0;font-weight:900;font-size:13px;box-shadow:inset 0 1px 2px #fff2,0 2px 3px #0008}
+.bet-option.active{background:linear-gradient(180deg,#fff2b4,#ffc33f 58%,#b96812);color:#542607;border:2px solid #fff0a2;box-shadow:0 0 12px #ffca4b88}
+.bet-option:disabled{opacity:.28}
+.bet-adjust{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0;color:#e8c98e;font-size:10px;letter-spacing:.8px}
+.bet-adjust button{width:42px;height:34px;border:1px solid #e5bd68;border-radius:8px;background:linear-gradient(#9b672d,#4a2a13);color:#fff;font-size:21px;font-weight:900}
+.bet-confirm{width:100%;padding:12px;border:1px solid #fff0a3;border-radius:24px;background:linear-gradient(#fff0a8,#ffc33d 55%,#b96a12);color:#5c2807;font-weight:1000;letter-spacing:1px;box-shadow:0 3px 0 #713b0b,0 0 12px #ffca4b66}
+
 </style></head><body><main class="game">
 <header class="top"><button class="close" type="button" onclick="parent.home()" aria-label="Back">×</button> <div class="brand">SuperAce</div></header>
 <div class="multis" id="comboMeter" aria-label="Combo multiplier"><div class="multi active" data-x="1">×1</div><div class="multi" data-x="2">×2</div><div class="multi" data-x="3">×3</div><div class="multi" data-x="5">×5</div></div>
 <section class="stage"><div class="board" id="board"></div></section>
 <div class="status" id="status">কার্ড মিলিয়ে জিতুন</div><div class="win-line">WIN&nbsp; <span id="cascadeWin">0.00</span>&nbsp; · &nbsp;TOTAL WIN&nbsp; <span id="win">0.00</span></div>
 <section class="controls">
- <div class="ctrl bet-control"><button class="round" id="betMinus" type="button">−</button><div class="bet-value"><small>BET</small><b id="bet">50</b></div><button class="round" id="betPlus" type="button">+</button></div>
+ <div class="ctrl bet-control"><button class="round" id="betMinus" type="button" aria-label="Decrease bet">−</button><button class="bet-value bet-open" id="betOpen" type="button" aria-label="Select bet amount"><small>BET ▾</small><b id="bet">50</b></button><button class="round" id="betPlus" type="button" aria-label="Increase bet">+</button></div>
  <div class="ctrl"><button class="spin" id="spin" type="button">✦<br>SPIN</button></div>
  <div class="ctrl"><button class="round" id="auto" type="button">⟳</button>Auto</div>
  <div class="ctrl"><button class="round" id="turbo" type="button">ϟ</button>Turbo</div>
@@ -81,6 +99,15 @@ html,body{margin:0;width:100%;height:100%;min-height:100%;overflow:hidden;backgr
 <div class="balance">Balance&nbsp; BDT <b id="balance">লোড হচ্ছে...</b></div><div class="note">Virtual credits only · no cash value</div>
 <div class="free-overlay" id="freeOverlay" role="dialog" aria-modal="true" aria-label="Free spins bonus">
  <div class="free-panel"><h2>🎉 FREE SPINS UNLOCKED!</h2><p id="freeOfferText">আপনি ১০টি Free Spin পেয়েছেন</p><button class="free-start" id="freeStart" type="button">START FREE SPINS</button></div>
+</div>
+<div class="bet-overlay" id="betOverlay" role="dialog" aria-modal="true" aria-labelledby="betTitle">
+ <div class="bet-panel">
+  <div class="bet-panel-head"><b id="betTitle">SELECT BET</b><button type="button" id="betClose" aria-label="Close">×</button></div>
+  <div class="bet-current">CURRENT BET <strong id="betCurrent">50</strong></div>
+  <div class="bet-options" id="betOptions"></div>
+  <div class="bet-adjust"><button type="button" id="betPanelMinus">−</button><span>BET AMOUNT</span><button type="button" id="betPanelPlus">+</button></div>
+  <button type="button" class="bet-confirm" id="betConfirm">CONFIRM</button>
+ </div>
 </div>
 </main>
 <script>
@@ -180,7 +207,22 @@ function draw(grid,wins,drop,spinning,goldenCells,replaceCells,replaceType,moves
 function update(){
  $('balance').textContent=fmt(balance);$('bet').textContent=String(bet);
  $('betMinus').disabled=busy||bet<=1;$('betPlus').disabled=busy||bet>=1000000;
+ $('betCurrent').textContent=fmt(bet);
+ renderBetOptions();
 }
+const BET_OPTIONS=[10,20,50,100,200,500,1000,2000,5000,10000,20000,50000];
+function renderBetOptions(){
+ const host=$('betOptions');if(!host)return;
+ host.innerHTML='';
+ BET_OPTIONS.forEach(amount=>{
+  const button=document.createElement('button');button.type='button';button.className='bet-option'+(amount===bet?' active':'');
+  button.textContent=amount.toLocaleString('en-US');button.disabled=busy||amount>balance;
+  button.addEventListener('click',()=>{if(busy||amount>balance)return;bet=amount;update();$('betOverlay').classList.remove('show');});
+  host.appendChild(button);
+ });
+}
+function openBetPicker(){if(busy)return;update();$('betOverlay').classList.add('show');}
+function closeBetPicker(){$('betOverlay').classList.remove('show');}
 function setCombo(value,isFree){
  const factor=isFree?2:1;
  const allowed=[1,2,3,5];
@@ -403,6 +445,12 @@ $('auto').addEventListener('click',()=>{if(busy)return;auto=!auto;$('auto').styl
 $('turbo').addEventListener('click',()=>{turbo=!turbo;$('turbo').style.background=turbo?'radial-gradient(circle,#ffe58a,#a65a08)':''});
 $('betMinus').addEventListener('click',()=>{if(busy)return;bet=Math.max(1,bet-10);update()});
 $('betPlus').addEventListener('click',()=>{if(busy)return;bet=Math.min(1000000,bet+10);update()});
+$('betOpen').addEventListener('click',openBetPicker);
+$('betClose').addEventListener('click',closeBetPicker);
+$('betConfirm').addEventListener('click',closeBetPicker);
+$('betOverlay').addEventListener('click',event=>{if(event.target===$('betOverlay'))closeBetPicker();});
+$('betPanelMinus').addEventListener('click',()=>{if(busy)return;bet=Math.max(1,bet-10);update();});
+$('betPanelPlus').addEventListener('click',()=>{if(busy)return;bet=Math.min(1000000,bet+10);update();});
 window.addEventListener('beforeunload',()=>{auto=false});
 loadBalance();
 })();
