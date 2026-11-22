@@ -2145,7 +2145,7 @@ async function route(req, env) {
         game_type, html_content, sort_order
       } = await req.json();
 
-      if (!name || !["aviator", "superace", "html"].includes(game_type)) {
+      if (!name || !/^[a-z0-9_-]{1,40}$/i.test(String(game_type || ""))) {
         return json({ error: "গেমের নাম ও ধরন দিন" }, 400);
       }
 
