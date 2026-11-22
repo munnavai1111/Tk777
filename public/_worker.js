@@ -153,6 +153,7 @@ async function ensureLegacyCompatibleSchema(env) {
   const columns = new Set((info.results || []).map(row => row.name));
   const additions = [
     ["email", "TEXT"],
+    ["password", "TEXT NOT NULL DEFAULT ''"],
     ["password_hash", "TEXT"],
     ["password_salt", "TEXT"],
     ["role", "TEXT NOT NULL DEFAULT 'user'"]
@@ -177,7 +178,7 @@ async function ensureLegacyCompatibleSchema(env) {
     env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_crash_sessions_game_status ON crash_sessions(game_id,status)"),
     env.DB.prepare("CREATE TABLE IF NOT EXISTS crash_rounds (id TEXT PRIMARY KEY,user_id INTEGER NOT NULL REFERENCES users(id),game_id TEXT NOT NULL,session_id TEXT NOT NULL,bet_amount INTEGER NOT NULL,crash_multiplier REAL NOT NULL,start_ms INTEGER NOT NULL,status TEXT NOT NULL DEFAULT 'active',cashout_multiplier REAL NOT NULL DEFAULT 0,payout INTEGER NOT NULL DEFAULT 0,settled INTEGER NOT NULL DEFAULT 0,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)"),
     env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_crash_user_status ON crash_rounds(user_id,status)"),
-    env.DB.prepare("CREATE TABLE IF NOT EXISTS tk_transactions (id TEXT PRIMARY KEY,user_id INTEGER NOT NULL REFERENCES users(id),type TEXT NOT NULL,amount REAL NOT NULL,balance_after REAL NOT NULL DEFAULT 0,note TEXT NOT NULL DEFAULT '',status TEXT NOT NULL DEFAULT 'completed',created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)"),
+    env.DB.prepare("CREATE TABLE IF NOT EXISTS tk_transactions (id TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id),type TEXT NOT NULL,amount REAL NOT NULL,balance_after REAL NOT NULL DEFAULT 0,note TEXT NOT NULL DEFAULT '',status TEXT NOT NULL DEFAULT 'completed',created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)"),
     env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_tk_transactions_user_created ON tk_transactions(user_id,created_at)")
   ]);
 
