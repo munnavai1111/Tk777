@@ -504,12 +504,29 @@ const TK777_GAME_COVER_ART = {
 function gameCard(g) {
   const type = String(g.game_type || '').toLowerCase();
   const name = String(g.name || '').toLowerCase();
+  const id = String(g.id || '').toLowerCase();
+  const liveArt = {
+    'european-roulette': ['🎡', 'EUROPEAN ROULETTE', 'live-roulette'],
+    'baccarat': ['🃏', 'BACCARAT', 'live-cards'],
+    'live-roulette': ['🎯', 'LIVE ROULETTE', 'live-roulette'],
+    'live-blackjack': ['♠️', 'LIVE BLACKJACK', 'live-cards'],
+    'live-baccarat': ['♦️', 'LIVE BACCARAT', 'live-cards']
+  };
+  const live = liveArt[id] || (type === 'live' && /roulette/.test(name)
+    ? ['🎡', name.toUpperCase(), 'live-roulette']
+    : type === 'live' && /blackjack/.test(name)
+      ? ['♠️', name.toUpperCase(), 'live-cards']
+      : type === 'live' && /baccarat/.test(name)
+        ? ['🃏', name.toUpperCase(), 'live-cards'] : null);
   const officialCover = /aviator/.test(name) || type === 'aviator'
     ? TK777_GAME_COVER_ART.aviator
-    : /super\s*ace/.test(name) || type === 'superace'
+    : /super\\s*ace/.test(name) || type === 'superace'
       ? TK777_GAME_COVER_ART.superace
       : '';
   const cover = officialCover || g.image_url || '';
+  const placeholder = live
+    ? `<div class="placeholder live-game-cover ${live[2]}"><span>${live[0]}</span><small>${esc(live[1])}</small></div>`
+    : `<div class="placeholder">${type === 'aviator' ? '✈️' : type === 'superace' ? '🂡' : '🎮'}</div>`;
   return `
     <button class="game" onclick="openGame('${esc(g.id)}')">
       <span class="favorite-toggle"
@@ -518,9 +535,9 @@ function gameCard(g) {
       </span>
       ${cover
         ? `<img src="${esc(cover)}" alt="${esc(g.name)}" loading="lazy" onerror="this.style.display='none'">`
-        : `<div class="placeholder">${g.game_type === 'aviator' ? '✈️' : g.game_type === 'superace' ? '🂡' : '🎮'}</div>`}
+        : placeholder}
       <strong>${esc(g.name)}</strong>
-      <small>${g.game_type === 'aviator' ? 'CRASH GAME' : g.game_type === 'superace' ? 'CARD GAME' : 'ARCADE GAME'}</small>
+      <small>${live ? 'LIVE CASINO' : type === 'aviator' ? 'CRASH GAME' : type === 'superace' ? 'CARD GAME' : 'ARCADE GAME'}</small>
     </button>`;
 }
 
