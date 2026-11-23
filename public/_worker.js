@@ -2302,6 +2302,21 @@ async function route(req, env) {
       return json({ok:true});
     }
 
+    if (p === "/api/superace-art" && method === "GET") {
+      const row = await env.DB.prepare("SELECT value FROM settings WHERE key='superace_card_art'").first();
+      let images = {};
+      try {
+        const parsed = JSON.parse(String(row?.value || "{}"));
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          for (const key of ["ace","king","queen","jack","spade","heart","diamond","club","wild","scatter","goldenJoker"]) {
+            const value = parsed[key];
+            if (typeof value === "string" && /^https:\/\//i.test(value)) images[key] = value;
+          }
+        }
+      } catch {}
+      return json({ images });
+    }
+
     /* ADMIN SETTINGS */
 
     if (p === "/api/admin/settings" && method === "GET") {
@@ -2387,11 +2402,22 @@ async function route(req, env) {
         return json({ error: "নম্বর অবশ্যই ১১ সংখ্যার হতে হবে" }, 400);
       }
 
+      if (key === "superace_card_art") {
+        try {
+          const parsed = JSON.parse(String(value || "{}"));
+          const allowed = ["ace","king","queen","jack","spade","heart","diamond","club","wild","scatter","goldenJoker"];
+          if (!parsed || typeof parsed !== "object" || Array.isArray(parsed) || Object.keys(parsed).some(k => !allowed.includes(k)) ||
+              Object.values(parsed).some(v => typeof v !== "string" || v.length > 1000 || (v && !/^https:\/\//i.test(v)))) throw new Error();
+        } catch {
+          return json({ error: "Super Ace card image data সঠিক নয়। HTTPS Image URL দিন।" }, 400);
+        }
+      }
+
       if (!key || String(key).length > 80) {
         return json({ error: "Key প্রয়োজন" }, 400);
       }
 
-      const maxSettingLength = ["deposit_content", "withdraw_content"].includes(key) ? 16000 : 1000;
+      const maxSettingLength = ["deposit_content", "withdraw_content", "superace_card_art"].includes(key) ? 16000 : 1000;
       if (String(value).length > maxSettingLength) {
         return json({ error: "Setting text limit অতিক্রম করেছে" }, 400);
       }
