@@ -2417,7 +2417,7 @@ async function route(req, env) {
         return json({ error: "Key প্রয়োজন" }, 400);
       }
 
-      const maxSettingLength = ["deposit_content", "withdraw_content", "superace_card_art"].includes(key) ? 16000 : 1000;
+      const maxSettingLength = ["deposit_content", "withdraw_content"].includes(key) ? 16000 : key === "superace_card_art" ? 24000 : 1000;
       if (String(value).length > maxSettingLength) {
         return json({ error: "Setting text limit অতিক্রম করেছে" }, 400);
       }
