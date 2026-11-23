@@ -179,6 +179,18 @@ const art={
  goldenJoker:"/golden-joker.svg",
 };
 
+async function loadSuperAceCardImages(){
+ try{
+  const response=await fetch('/api/superace-art');
+  if(!response.ok)return;
+  const data=await response.json();
+  const images=data&&data.images&&typeof data.images==='object'?data.images:{};
+  for(const key of Object.keys(images)){
+   if(Object.prototype.hasOwnProperty.call(art,key))art[key]=images[key];
+  }
+ }catch(_){}
+}
+
 // Create a white version of the ordinary King from the same card artwork.
 // Yellow/gold pixels are neutralized; the special goldenCard keeps the original gold artwork.
 const whiteKingArtPromise=(async()=>{
@@ -534,7 +546,7 @@ $('betOverlay').addEventListener('click',event=>{if(event.target===$('betOverlay
 $('betPanelMinus').addEventListener('click',()=>{if(busy)return;bet=Math.max(1,bet-10);update();});
 $('betPanelPlus').addEventListener('click',()=>{if(busy)return;bet=Math.min(1000000,bet+10);update();});
 window.addEventListener('beforeunload',()=>{auto=false});
-loadBalance();
+loadSuperAceCardImages().finally(()=>loadBalance());
 const jiliLoading=$('jiliLoading');if(jiliLoading){setTimeout(()=>{jiliLoading.classList.add('hide');setTimeout(()=>jiliLoading.remove(),220);},1000);}
 })();
 
