@@ -349,7 +349,8 @@ function setCardFace(cell,rawId){
   img.onerror=()=>{img.remove();cell.classList.add('scatter-fallback');cell.innerHTML='<div class="scatter-coin"><b>＄</b><small>SCATTER</small></div>';};
  }else{
   const key=String(id||'ace').trim().toLowerCase();
-  const artKey=(key==='goldenjoker'||key==='littlejoker')?'goldenJoker':key==='bigjoker'?'wild':key==='goldencard'?'king':key.startsWith('golden')?key.slice(6):key;
+  const goldenArtKey=key==='goldencard'?'goldenCard':key==='goldenjoker'||key==='littlejoker'?'goldenJoker':key.startsWith('golden')?'golden'+key.slice(6,7).toUpperCase()+key.slice(7):null;
+  const artKey=key==='bigjoker'?'wild':goldenArtKey&&art[goldenArtKey]?goldenArtKey:key==='goldencard'?'king':key.startsWith('golden')?key.slice(6):key;
   img.alt=String(id);img.src=art[artKey]||art.ace;
   img.onerror=()=>{img.onerror=null;img.src=art.ace;};
   // Keep the ordinary white King consistent during falling/cascade animations.
