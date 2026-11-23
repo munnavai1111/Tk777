@@ -417,6 +417,7 @@ const showWinSequence=(totalWinAmount,betAmount)=>{
   overlay.classList.remove('is-visible');return false;
  }
  const superThreshold=stake*15,hasSuper=win>=superThreshold;
+ const countDuration=value=>Math.min(10000,Math.max(1800,Math.round(1200+Math.log10(Math.max(1,Number(value)||1)+1)*1800)));
  const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
  const format=value=>Math.floor(value).toLocaleString('en-US');
  const count=(from,to,duration)=>new Promise(resolve=>{
@@ -436,14 +437,14 @@ const showWinSequence=(totalWinAmount,betAmount)=>{
  return (async()=>{
   await wait(650);if(id!==winPopupRunId)return false;
   if(hasSuper){
-   await count(1,superThreshold,3400);if(id!==winPopupRunId)return false;
+   await count(1,superThreshold,countDuration(superThreshold));if(id!==winPopupRunId)return false;
    await wait(900);if(id!==winPopupRunId)return false;
    title.textContent='SUPER WIN';popup.classList.add('is-super');
    await wait(500);if(id!==winPopupRunId)return false;
-   await count(superThreshold,win,2700);if(id!==winPopupRunId)return false;
+   await count(superThreshold,win,countDuration(win-superThreshold));if(id!==winPopupRunId)return false;
    await wait(1500);
   }else{
-   await count(1,win,3400);if(id!==winPopupRunId)return false;
+   await count(1,win,countDuration(win));if(id!==winPopupRunId)return false;
    await wait(1400);
   }
   if(id!==winPopupRunId)return false;
@@ -526,7 +527,7 @@ async function play(){
    if(Array.isArray(result.finalGrid)&&result.finalGrid.length===20&&JSON.stringify(visibleGrid)!==JSON.stringify(result.finalGrid))draw(result.finalGrid);
   }
   setCombo(freeSpins>0?2:1,freeSpins>0);
-  totalWin=Math.max(0,Number(result.payout||0));showWinSequence(totalWin,stake);$('cascadeWin').textContent=fmt(frames.filter(f=>f.type==='win').slice(-1)[0]?.winAmount||0);$('win').textContent=fmt(totalWin);if(totalWin>0||frames.some(f=>f.type==='win'))$('win').parentElement.classList.add('show');
+  totalWin=Math.max(0,Number(result.payout||0));await showWinSequence(totalWin,stake);$('cascadeWin').textContent=fmt(frames.filter(f=>f.type==='win').slice(-1)[0]?.winAmount||0);$('win').textContent=fmt(totalWin);if(totalWin>0||frames.some(f=>f.type==='win'))$('win').parentElement.classList.add('show');
   const awarded=Number(result.freeSpinAward||0);if(awarded>0)showFreeSpinOffer();
   $('status').textContent=(awarded?'🎉 SCATTER BONUS · +'+awarded+' FREE SPINS · ':result.freeSpin?'FREE SPIN · ':'')+(Number(result.payout||0)>0?'WIN · MAX COMBO ×'+Number(result.maxCascadeX||1)+' · '+Number(result.cascadeCount||0)+' CASCADES':'NO WIN · TRY AGAIN')+(freeSpins?' · FREE SPINS LEFT '+freeSpins:'');
  }catch(e){$('status').textContent=e.message;try{const d=await request('/me');balance=Number(d.user.balance||0);update();sendBalanceToParent()}catch(_){}}
