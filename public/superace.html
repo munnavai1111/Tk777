@@ -477,8 +477,12 @@ async function play(){
   balance=Number(result.balance||0);freeSpins=Number(result.freeSpins||0);if(freeSpins<=0)freeSpinReady=false;update();updateFreeSpinButton();sendBalanceToParent();
   if(!frames.length){await sleep(turbo?100:220)}
   else{
+   let shownComboX=1;
    for(const frame of frames){
-    setCombo(frame.cascadeX||1,Boolean(result.freeSpin));
+    // Keep the multiplier on the next cascade while cards are removed, dropped and refilled.
+    if(frame.cascadeX!==undefined&&frame.cascadeX!==null)shownComboX=Number(frame.cascadeX)||shownComboX;
+    else if(frame.nextCascadeX!==undefined&&frame.nextCascadeX!==null)shownComboX=Number(frame.nextCascadeX)||shownComboX;
+    setCombo(shownComboX,Boolean(result.freeSpin));
     if(frame.type==='anticipation'){
      // Only the second reel row flashes; the other fifteen landed cards stay fixed.
      await animateAnticipationRow(frame.grid);
