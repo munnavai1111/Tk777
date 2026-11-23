@@ -2308,7 +2308,7 @@ async function route(req, env) {
       try {
         const parsed = JSON.parse(String(row?.value || "{}"));
         if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-          for (const key of ["ace","king","queen","jack","spade","heart","diamond","club","wild","scatter","goldenJoker"]) {
+          for (const key of ["ace","king","queen","jack","spade","heart","diamond","club","wild","scatter","goldenAce","goldenCard","goldenQueen","goldenJack","goldenSpade","goldenHeart","goldenDiamond","goldenClub","goldenJoker"]) {
             const value = parsed[key];
             if (typeof value === "string" && /^https:\/\//i.test(value)) images[key] = value;
           }
@@ -2405,7 +2405,7 @@ async function route(req, env) {
       if (key === "superace_card_art") {
         try {
           const parsed = JSON.parse(String(value || "{}"));
-          const allowed = ["ace","king","queen","jack","spade","heart","diamond","club","wild","scatter","goldenJoker"];
+          const allowed = ["ace","king","queen","jack","spade","heart","diamond","club","wild","scatter","goldenAce","goldenCard","goldenQueen","goldenJack","goldenSpade","goldenHeart","goldenDiamond","goldenClub","goldenJoker"];
           if (!parsed || typeof parsed !== "object" || Array.isArray(parsed) || Object.keys(parsed).some(k => !allowed.includes(k)) ||
               Object.values(parsed).some(v => typeof v !== "string" || v.length > 1000 || (v && !/^https:\/\//i.test(v)))) throw new Error();
         } catch {
