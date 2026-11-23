@@ -98,6 +98,18 @@ html,body{margin:0;width:100%;height:100%;min-height:100%;overflow:hidden;backgr
 @keyframes jiliLineShrink{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 @media(prefers-reduced-motion:reduce){.jili-underline{animation-duration:1s}}
 
+
+/* BIG WIN / SUPER WIN popup */
+.win-popup-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;pointer-events:none;z-index:999999}
+.win-popup-overlay.is-visible{display:flex}
+.win-popup{min-width:min(82vw,320px);max-width:90vw;padding:22px 30px 25px;border:2px solid #ffd76a;border-radius:18px;background:linear-gradient(145deg,#392000 0%,#120b02 55%,#4b2b00 100%);box-shadow:0 0 22px rgba(255,190,45,.55),inset 0 0 18px rgba(255,220,120,.12);color:#fff2b5;text-align:center;transform:scale(.72);opacity:0;animation:winPopupIn .42s cubic-bezier(.18,.85,.25,1.2) forwards}
+.win-popup-title{margin:0 0 10px;color:#ffe17b;font:900 clamp(28px,8vw,44px)/1.05 Arial,sans-serif;letter-spacing:1.5px;text-shadow:0 2px 0 #8c4b00,0 0 14px rgba(255,205,64,.8)}
+.win-popup-amount{color:#fff;font:900 clamp(30px,9vw,48px)/1.1 Arial,sans-serif;text-shadow:0 0 12px rgba(255,210,90,.75);overflow-wrap:anywhere}
+.win-popup.is-super{border-color:#fff0a1;box-shadow:0 0 30px rgba(255,218,92,.85),inset 0 0 22px rgba(255,230,140,.2)}
+.win-popup.is-super .win-popup-title{color:#fff3a6;text-shadow:0 0 18px #ffbd28,0 2px 0 #8c4b00}
+@keyframes winPopupIn{0%{opacity:0;transform:scale(.72) translateY(12px)}70%{opacity:1;transform:scale(1.06) translateY(0)}100%{opacity:1;transform:scale(1)}}
+@keyframes winPopupOut{to{opacity:0;transform:scale(.88) translateY(-8px)}}
+
 </style></head><body><main class="game">
 <div class="jili-loading" id="jiliLoading" aria-label="JILI Super Ace 2026 loading"><div class="jili-logo">JILI</div><div class="jili-subtitle">Super Ace 2026</div><div class="jili-underline"></div></div>
 <header class="top"><button class="close" type="button" onclick="parent.home()" aria-label="Back">×</button> <div class="brand">SuperAce</div></header>
@@ -125,6 +137,15 @@ html,body{margin:0;width:100%;height:100%;min-height:100%;overflow:hidden;backgr
   <button type="button" class="bet-confirm" id="betConfirm">CONFIRM</button>
  </div>
 </div>
+
+<!-- BIG WIN / SUPER WIN popup -->
+<div class="win-popup-overlay" id="winPopupOverlay" aria-live="polite">
+ <div class="win-popup" id="winPopup">
+  <div class="win-popup-title" id="winPopupTitle">BIG WIN</div>
+  <div class="win-popup-amount" id="winPopupAmount">0</div>
+ </div>
+</div>
+
 </main>
 <script>
 (function(){
@@ -362,6 +383,53 @@ function sendBalanceToParent(){
  try{parent.postMessage({type:'tk777-balance-update',balance:balance},location.origin)}catch(_){}
 }
 let pendingSpinId=null;
+
+let winPopupRunId=0;
+const showWinSequence=(totalWinAmount,betAmount)=>{
+ const id=++winPopupRunId;
+ const overlay=$('winPopupOverlay'),popup=$('winPopup'),title=$('winPopupTitle'),amountNode=$('winPopupAmount');
+ const win=Number(totalWinAmount),stake=Number(betAmount);
+ if(!Number.isFinite(win)||!Number.isFinite(stake)||win<=0||stake<=0||win<stake*6){
+  overlay.classList.remove('is-visible');return false;
+ }
+ const superThreshold=stake*15,hasSuper=win>=superThreshold;
+ const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+ const format=value=>Math.floor(value).toLocaleString('en-US');
+ const count=(from,to,duration)=>new Promise(resolve=>{
+  const start=performance.now();
+  const frame=now=>{
+   if(id!==winPopupRunId)return resolve();
+   const progress=Math.min(1,(now-start)/duration),eased=1-Math.pow(1-progress,2.2);
+   amountNode.textContent=format(from+(to-from)*eased);
+   if(progress<1)requestAnimationFrame(frame);
+   else{amountNode.textContent=format(to);resolve();}
+  };
+  requestAnimationFrame(frame);
+ });
+ overlay.classList.add('is-visible');
+ popup.style.animation='none';void popup.offsetWidth;popup.style.animation='';
+ popup.classList.remove('is-super');title.textContent='BIG WIN';amountNode.textContent='1';
+ return (async()=>{
+  await wait(650);if(id!==winPopupRunId)return false;
+  if(hasSuper){
+   await count(1,superThreshold,3800);if(id!==winPopupRunId)return false;
+   await wait(900);if(id!==winPopupRunId)return false;
+   title.textContent='SUPER WIN';popup.classList.add('is-super');
+   await wait(500);if(id!==winPopupRunId)return false;
+   await count(superThreshold,win,3000);if(id!==winPopupRunId)return false;
+   await wait(1500);
+  }else{
+   await count(1,win,3800);if(id!==winPopupRunId)return false;
+   await wait(1400);
+  }
+  if(id!==winPopupRunId)return false;
+  popup.style.animation='winPopupOut .6s ease forwards';
+  await wait(600);
+  if(id===winPopupRunId){overlay.classList.remove('is-visible');popup.style.animation='';}
+  return true;
+ })();
+};
+
 async function play(){
  if(busy)return;
  if(!pendingSpinId){
@@ -430,7 +498,7 @@ async function play(){
    if(Array.isArray(result.finalGrid)&&result.finalGrid.length===20&&JSON.stringify(visibleGrid)!==JSON.stringify(result.finalGrid))draw(result.finalGrid);
   }
   setCombo(freeSpins>0?2:1,freeSpins>0);
-  totalWin=Math.max(0,Number(result.payout||0));$('cascadeWin').textContent=fmt(frames.filter(f=>f.type==='win').slice(-1)[0]?.winAmount||0);$('win').textContent=fmt(totalWin);if(totalWin>0||frames.some(f=>f.type==='win'))$('win').parentElement.classList.add('show');
+  totalWin=Math.max(0,Number(result.payout||0));showWinSequence(totalWin,stake);$('cascadeWin').textContent=fmt(frames.filter(f=>f.type==='win').slice(-1)[0]?.winAmount||0);$('win').textContent=fmt(totalWin);if(totalWin>0||frames.some(f=>f.type==='win'))$('win').parentElement.classList.add('show');
   const awarded=Number(result.freeSpinAward||0);if(awarded>0)showFreeSpinOffer();
   $('status').textContent=(awarded?'🎉 SCATTER BONUS · +'+awarded+' FREE SPINS · ':result.freeSpin?'FREE SPIN · ':'')+(Number(result.payout||0)>0?'WIN · MAX COMBO ×'+Number(result.maxCascadeX||1)+' · '+Number(result.cascadeCount||0)+' CASCADES':'NO WIN · TRY AGAIN')+(freeSpins?' · FREE SPINS LEFT '+freeSpins:'');
  }catch(e){$('status').textContent=e.message;try{const d=await request('/me');balance=Number(d.user.balance||0);update();sendBalanceToParent()}catch(_){}}
