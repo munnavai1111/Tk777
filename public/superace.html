@@ -436,14 +436,14 @@ const showWinSequence=(totalWinAmount,betAmount)=>{
  return (async()=>{
   await wait(650);if(id!==winPopupRunId)return false;
   if(hasSuper){
-   await count(1,superThreshold,3800);if(id!==winPopupRunId)return false;
+   await count(1,superThreshold,3400);if(id!==winPopupRunId)return false;
    await wait(900);if(id!==winPopupRunId)return false;
    title.textContent='SUPER WIN';popup.classList.add('is-super');
    await wait(500);if(id!==winPopupRunId)return false;
-   await count(superThreshold,win,3000);if(id!==winPopupRunId)return false;
+   await count(superThreshold,win,2700);if(id!==winPopupRunId)return false;
    await wait(1500);
   }else{
-   await count(1,win,3800);if(id!==winPopupRunId)return false;
+   await count(1,win,3400);if(id!==winPopupRunId)return false;
    await wait(1400);
   }
   if(id!==winPopupRunId)return false;
